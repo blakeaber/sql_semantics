@@ -11,6 +11,8 @@ class SQLTree:
 
     def parse_tokens(self, tokens, parent, previous_keyword=None):
 
+        is_create_statement = n.is_create(tokens)
+
         for token in tokens:
 
             if (token.is_whitespace or isinstance(token, Comment)):
@@ -41,13 +43,19 @@ class SQLTree:
                         previous_keyword.add_child(n.SQLColumn(token))
                     elif n.contains_table(previous_keyword.token):
                         previous_keyword.add_child(n.SQLTable(token))
+                    elif n.is_table(previous_keyword.token):
+                        previous_keyword.add_child(n.SQLTable(token))
 
                 elif isinstance(token, IdentifierList):
                     print('id_list', token)
                     self.parse_tokens(token, previous_keyword, previous_keyword)
 
+                # elif is_create_statement and n.is_table(previous_keyword.token):
+                #     print('create', token)
+                #     previous_keyword.add_child(n.SQLTableDefinition([i for i in token if not i.is_whitespace]))
+
                 elif n.is_insert(previous_keyword.token) and n.contains_table_definition(token):
-                    print('ddl', token)
+                    print('insert', token)
                     previous_keyword.add_child(n.SQLTableDefinition(token))
 
                 elif (token.ttype == Name) and n.contains_cte(previous_keyword.token):

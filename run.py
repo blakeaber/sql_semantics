@@ -4,7 +4,7 @@ from sqlsim import etl
 if __name__ == '__main__':
 
     # read in the sample query
-    with open('./sqlsim/cte.sql') as f:
+    with open('./sqlsim/dml.sql') as f:
         query = f.read()
 
     # parse the statement into a tree

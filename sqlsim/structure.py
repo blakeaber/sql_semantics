@@ -44,8 +44,11 @@ class SQLTree:
 
                 elif isinstance(token, IdentifierList):
                     print('id_list', token)
-                    # previous_keyword.add_child(n.SQLNode(token))  # is this useful in DML statements?
                     self.parse_tokens(token, previous_keyword, previous_keyword)
+
+                elif n.is_insert(previous_keyword.token) and n.contains_table_definition(token):
+                    print('ddl', token)
+                    previous_keyword.add_child(n.SQLTableDefinition(token))
 
                 elif (token.ttype == Name) and n.contains_cte(previous_keyword.token):
                     print('cte', token)

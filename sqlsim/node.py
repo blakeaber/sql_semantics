@@ -1,5 +1,5 @@
 from sqlparse.sql import Identifier, IdentifierList, Parenthesis, Function
-from sqlparse.tokens import Keyword, DML
+from sqlparse.tokens import Keyword, DML, Punctuation
 
 
 def is_identifier(self):
@@ -20,8 +20,8 @@ def contains_table(token):
         token.is_keyword and 
         (
             (token.value.upper() == 'FROM') or 
-            ('JOIN' in token.value.upper()) or 
-            (token.value.upper() == 'WITH')
+            (token.value.upper() == 'WITH') or
+            ('JOIN' in token.value.upper())
         )
     )
 
@@ -62,6 +62,18 @@ def contains_function(token):
             (t.is_keyword or isinstance(t, Function)) 
             for t in token.tokens 
             if t.value.upper() != 'AS')
+    )
+
+def is_insert(token):
+    return (
+        token.is_keyword and 
+        (token.value.upper() == 'INTO')
+    )
+
+def contains_table_definition(token):
+    return (
+        isinstance(token, Function) and 
+        any(isinstance(t, Parenthesis) for t in token.tokens)
     )
 
 
@@ -118,6 +130,23 @@ class SQLTable(SQLNode):
 
     def __repr__(self):
         return f"SQLTable({self.name, self.alias})"
+
+
+class SQLTableDefinition(SQLNode):
+    def __init__(self, token):
+        super().__init__(token)
+        self.name, self.columns = [i for i in token.tokens if not i.is_whitespace]
+        self.name = self.name.get_real_name()
+        self.columns = [
+            i.value for i in self.columns.flatten() 
+            if (
+                (not i.is_whitespace) and 
+                (not i.ttype == Punctuation)
+                )
+            ]
+
+    def __repr__(self):
+        return f"SQLTableDefinition({self.name, self.columns})"
 
 
 class SQLFeature(SQLNode):

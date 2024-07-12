@@ -1,9 +1,9 @@
 from sqlparse.sql import Identifier, IdentifierList, Parenthesis, Function
-from sqlparse.tokens import Keyword, DML, Punctuation
+from sqlparse.tokens import DDL, DML, Punctuation
 
 
-def is_identifier(self):
-    return isinstance(self.token, (Identifier, IdentifierList))
+def is_identifier(token):
+    return isinstance(token, (Identifier, IdentifierList))
 
 def contains_column(token):
     return (
@@ -64,11 +64,20 @@ def contains_function(token):
             if t.value.upper() != 'AS')
     )
 
+def is_table(token):
+    return (
+        token.is_keyword and 
+        (token.value.upper() == 'TABLE')
+    )
+
 def is_insert(token):
     return (
         token.is_keyword and 
         (token.value.upper() == 'INTO')
     )
+
+def is_create(tokens):
+    return any(t.ttype is DDL and t.value.upper() == 'CREATE' for t in tokens)
 
 def contains_table_definition(token):
     return (

@@ -1,3 +1,4 @@
+-- CTE: Common Table Expressions
 WITH department_salaries AS (
     SELECT 
         d.department_name,

@@ -101,9 +101,6 @@ class SQLNode:
         for child in self.children:
             child.traverse(depth + 1)
 
-    def extract_structure(self):
-        NotImplementedError
-
 
 class SQLKeyword(SQLNode):
     def __init__(self, token):

@@ -1,115 +1,154 @@
-# SQL Parsing and Query Execution
 
-This project provides tools for parsing SQL queries and executing them on a sample database schema. It includes Python code for parsing SQL queries into a tree structure and a sample SQL script for creating tables and executing queries.
+### **🔹 Recommended `README.md` for Your SQL Parsing Project**
+A well-structured `README.md` ensures users and developers can quickly understand **what your project does, how to install it, and how to use it**.
 
-## Files
+---
 
-The project is structured as a Python package named `sqlsim` with the following files:
+## **📌 Example `README.md`**
+```
+# SQL Parsing Library
 
-1. **sqlsim/etl.py**: A Python script that parses SQL queries into a tree structure using the `sqlparse` library.
-2. **sqlsim/main.py**: A Python script defining the `SQLNode` and `SQLTree` classes used for building and traversing the parsed SQL query tree.
-3. **sqlsim/sample.sql**: A SQL script containing DDL, CTE, and DML statements for a sample database schema.
-4. **run.py**: A Python script that utilizes the `sqlsim` package to parse and traverse a SQL query from the `sample.sql` file.
+🚀 **A modular Python library for parsing complex SQL queries into structured trees and extracting semantic relationships.**
 
-## Getting Started
+## **📖 Features**
+- ✅ Parses SQL **SELECT**, **CTE**, **CASE**, **JOIN**, **WHERE**, **HAVING**, **WINDOW**, and **ORDER BY** clauses.
+- ✅ Builds **hierarchical trees** from SQL queries.
+- ✅ Extracts **subject-predicate-object triples** for **knowledge graphs**.
+- ✅ Supports **query optimization analysis**.
+- ✅ Designed for **scalability** with modular code.
 
-### Prerequisites
+---
 
-- Python 3.x
-- `sqlparse` library
-- Any SQL database (e.g., SQLite, PostgreSQL, MySQL) to execute the SQL script
+## **📥 Installation**
+### **1️⃣ Clone the Repository**
+```sh
+git clone https://github.com/your-repo/sql-parser.git
+cd sql-parser
+```
+### **2️⃣ Create a Virtual Environment**
+```sh
+python3 -m venv venv
+source venv/bin/activate  # macOS/Linux
+venv\Scripts\activate     # Windows
+```
+### **3️⃣ Install Dependencies**
+```sh
+pip install -r requirements.txt
+```
 
-### Installation
+---
 
-1. Clone this repository:
-    ```sh
-    git clone https://github.com/yourusername/sql-parsing-query-execution.git
-    cd sql-parsing-query-execution
-    ```
+## **🚀 Usage**
+### **🔹 1️⃣ Parsing SQL Queries**
+Run the parser from `scripts/run_parser.py`:
+```sh
+python scripts/run_parser.py "SELECT name FROM users WHERE age > 21"
+```
+### **🔹 2️⃣ Extracting Relationships as Triples**
+Run:
+```sh
+python scripts/run_parser.py --triples "SELECT name FROM users WHERE age > 21"
+```
+**Example Output:**
+```
+Query - has - Table:users
+Table:users - has - Column:name
+Query - has - WHERE
+WHERE - has - Comparison: age > 21
+```
 
-2. Install the required Python package:
-    ```sh
-    pip install sqlparse
-    ```
+---
 
-### Usage
+## **🛠️ File Structure**
+```
+sql_parser_project/
+│── sql_parser/                # Core parsing logic
+│   │── __init__.py            # Package initialization
+│   │── parser.py              # Main SQL parsing functions
+│   │── node.py                # SQLTree node structures
+│   │── extractor.py           # Extracts triples from parsed queries
+│   │── utils.py               # Helper functions
+│
+│── tests/                     # Test suite
+│   │── __init__.py            # Package initialization
+│   │── test_sql_parser.py     # Unit tests for parsing logic
+│
+│── scripts/                   # Utility scripts
+│   │── example_queries.py      # Example queries for manual testing
+│   │── run_parser.py           # CLI tool to parse SQL
+│
+│── requirements.txt           # Dependencies
+│── README.md                  # Documentation
+│── .gitignore                 # Ignore unnecessary files
+│── pytest.ini                 # Pytest configuration
+```
 
-1. **Python Package (sqlsim)**:
-    - **sqlsim/etl.py**: The `etl.py` script contains functions to parse SQL queries into a tree structure. The main function is `parse_sql_query(query, statement_idx=0)` which takes a SQL query string as input and returns a parsed tree.
+---
 
-    ```python
-    from sqlsim.etl import parse_sql_query
+## **🧪 Running Tests**
+### **Run All Tests**
+```sh
+pytest tests/ -v
+```
+### **Run a Specific Test**
+```sh
+pytest tests/test_sql_parser.py::test_parse_where_conditions -v
+```
 
-    query = "SELECT * FROM employees WHERE salary > 50000;"
-    tree = parse_sql_query(query)
-    print(tree)
-    ```
+---
 
-    - **sqlsim/main.py**: The `main.py` script defines the `SQLNode` and `SQLTree` classes used for building and traversing the parsed SQL query tree.
+## **📌 Supported SQL Features**
+| Feature | Supported |
+|---------|-----------|
+| ✅ Basic `SELECT` Queries | ✅ Yes |
+| ✅ WHERE Conditions | ✅ Yes |
+| ✅ JOINs (INNER, LEFT, RIGHT) | ✅ Yes |
+| ✅ CASE Statements | ✅ Yes |
+| ✅ CTEs (Common Table Expressions) | ✅ Yes |
+| ✅ Window Functions (e.g., RANK) | ✅ Yes |
+| ✅ HAVING Clause | ✅ Yes |
+| ✅ ORDER BY, LIMIT, OFFSET | ✅ Yes |
 
-    ```python
-    from sqlsim.main import SQLNode, SQLTree
+---
 
-    # Example usage of SQLNode and SQLTree
-    node = SQLNode("SELECT")
-    tree = SQLTree()
-    tree.add_node(node)
-    tree.traverse()
-    ```
+## **🔍 Example SQL Query Parsing**
+```python
+from sql_parser.parser import parse_sql_to_tree
 
-2. **SQL Script (sqlsim/sample.sql)**:
-    - The `sample.sql` script sets up a sample database schema with tables for `employees`, `departments`, `projects`, and `employee_projects`. It includes example queries and data manipulation statements.
+sql = "SELECT name, COUNT(*) FROM users GROUP BY name HAVING COUNT(*) > 10"
+tree = parse_sql_to_tree(sql)
+print(tree)
+```
+**Output:**
+```
+QueryBlock
+  Table: users
+  Columns:
+    Column: name
+    Feature: COUNT(*)
+  GroupBy: name
+  Having: COUNT(*) > 10
+```
 
-    - To execute the SQL script, run it in your SQL database management tool or use a command-line interface:
+---
 
-    ```sh
-    sqlite3 yourdatabase.db < sqlsim/sample.sql
-    ```
+## **📌 Contributing**
+### **📢 Want to contribute?**
+1. **Fork the repo**.
+2. **Create a feature branch** (`feature/my-feature`).
+3. **Commit changes** (`git commit -m "Added new feature"`).
+4. **Push to GitHub** (`git push origin feature/my-feature`).
+5. **Open a Pull Request**.
 
-3. **Run Script (run.py)**:
-    - The `run.py` script reads the sample SQL query from `sqlsim/sample.sql`, parses it into a tree structure, and traverses the tree to output its structure.
+---
 
-    ```python
-    from sqlsim.etl import parse_sql_query
+## **📄 License**
+This project is licensed under the **MIT License**.
 
-    if __name__ == '__main__':
-        # Read in the sample query
-        with open('./sqlsim/sample.sql') as f:
-            query = f.read()
+---
 
-        # Parse the statement into a tree
-        sql_tree = parse_sql_query(query, statement_idx=0)
-
-        # Output the parsed tree structure
-        sql_tree.traverse()
-    ```
-
-    - To run the script:
-
-    ```sh
-    python run.py
-    ```
-
-## Project Structure
-
-- **sqlsim/etl.py**: Contains the following functions:
-  - `parse_tokens(tokens, parent)`: Recursively parses SQL tokens into a tree structure.
-  - `parse_sql_query(query, statement_idx=0)`: Parses a SQL query string into a tree structure.
-
-- **sqlsim/main.py**: Defines the `SQLNode` and `SQLTree` classes for constructing and traversing the parsed SQL query tree.
-
-- **sqlsim/sample.sql**: Contains SQL statements to:
-  - Create tables (`employees`, `departments`, `projects`, `employee_projects`)
-  - Define Common Table Expressions (CTEs)
-  - Insert data into tables
-  - Select data from tables with various conditions and joins
-
-- **run.py**: Utilizes the `sqlsim` package to read, parse, and traverse a SQL query from the `sample.sql` file.
-
-## Contributing
-
-Contributions are welcome! Please fork this repository and submit pull requests for any improvements or bug fixes.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## **📬 Contact**
+For questions, feel free to reach out:
+📧 **Email:** `your_email@example.com`  
+🔗 **GitHub:** [your-repo](https://github.com/your-repo)  
+```

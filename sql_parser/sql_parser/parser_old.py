@@ -39,8 +39,14 @@ class SQLParser:
 
     def parse_tokens(self, tokens, context_node):
         """Traverses and parses SQL tokens into structured nodes."""
+        current_keyword_node = None
         for token in tokens:
             if token.is_whitespace or token.ttype is None:
+                continue
+
+            if token.is_keyword:
+                current_keyword_node = n.SQLKeyword(token)
+                context_node.add_child(current_keyword_node)
                 continue
 
             if token.match(DML, "SELECT"):
@@ -61,6 +67,8 @@ class SQLParser:
                 self.handle_case_statement(token, context_node)
             elif isinstance(token, Parenthesis):
                 self.handle_subquery(token, context_node)
+            elif token.is_group:
+                self.parse_tokens(token.tokens, context_node)
             else:
                 context_node.add_child(SQLNode(token.value, "Unknown"))
 

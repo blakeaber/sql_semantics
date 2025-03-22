@@ -2,7 +2,7 @@
 import pytest
 import sqlparse
 from sql_parser import node as n
-from sql_parser.parser import parse_sql_to_tree
+from sql_parser.sql_parser.parser_old import parse_sql_to_tree
 from sql_parser.extractor import SQLTripleExtractor
 from sql_parser.utils import (
     parse_where_conditions,
@@ -168,7 +168,7 @@ def test_logging_output(caplog):
 
 def test_invalid_sql():
     """Ensure invalid SQL queries are handled gracefully."""
-    from sql_parser.parser import SQLParser
+    from sql_parser.sql_parser.parser_old import SQLParser
     
     parser = SQLParser()
     result = parser.parse_sql("INVALID SQL SYNTAX")

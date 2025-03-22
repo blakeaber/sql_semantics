@@ -3,7 +3,7 @@ import json
 import argparse
 
 from sql_parser.utils import normalize_sql
-from sql_parser.parser import parse_sql_to_tree
+from sql_parser.sql_parser.parser_old import parse_sql_to_tree
 from sql_parser.extractor import SQLTripleExtractor
 
 

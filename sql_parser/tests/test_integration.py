@@ -4,7 +4,7 @@ import json
 import pytest
 import subprocess
 
-from sql_parser.parser import SQLParser
+from sql_parser.sql_parser.parser_old import SQLParser
 from sql_parser.extractor import SQLTripleExtractor
 from sql_parser.utils import generate_uid, normalize_sql
 

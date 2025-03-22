@@ -5,7 +5,7 @@ from sqlparse.tokens import CTE, DML, Keyword, Punctuation, Name
 from itertools import tee
 
 from sql_parser import node as n
-from sql_parser.utils import log_parsing_step, extract_comparison, is_window_function, is_aggregate_function  # Added imports
+from sql_parser.utils import log_parsing_step, extract_comparison  # Removed is_window_function and is_aggregate_function imports
 
 
 def peekable(iterable):
@@ -48,6 +48,18 @@ def is_column(token=None, last_keyword=None):
 
 def is_table(token=None, last_keyword=None):
     return last_keyword.match(Keyword, ["FROM", "UPDATE", "INTO"]) or ("JOIN" in last_keyword.value)
+
+def is_window_function(token):
+    """
+    Checks if a function is a window function (e.g., RANK() OVER ...).
+    """
+    return isinstance(token, sqlparse.sql.Function) and "OVER" in token.value.upper()
+
+def is_aggregate_function(token):
+    """
+    Detects if a token represents an aggregate function (e.g., SUM, COUNT).
+    """
+    return isinstance(token, sqlparse.sql.Function) and token.get_real_name() in {"SUM", "COUNT", "AVG", "MIN", "MAX"}
 
 
 class SQLTree:

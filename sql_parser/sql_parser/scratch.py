@@ -180,7 +180,6 @@ class SQLTree:
 
     def _handle_cte(self, token, parent, last_keyword):
         """Handles SQL CTEs"""
-        # AI add a test case for this function
         for cte in clean_tokens(token.tokens):
             print("CTE:", cte)
             cte_node = n.SQLCTE(cte)

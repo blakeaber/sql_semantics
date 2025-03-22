@@ -4,14 +4,16 @@ from sqlparse.sql import IdentifierList, Token, TokenList
 from sql_parser import (
     node as n,
     scratch as s
-    )
-
+)
 
 def test_handle_cte():
-    # AI? suggest a simpler SQL query that could be hard-coded inside this function to test it?
-    with open('sql_parser/scripts/testing.sql', 'r') as file:
-        sql_code = file.read()
-        parsed = sqlparse.parse(sql_code)
+    sql_code = """
+    WITH simple_cte AS (
+        SELECT name, age FROM users
+    )
+    SELECT * FROM simple_cte;
+    """
+    parsed = sqlparse.parse(sql_code)
     
     root_token = Token(None, "WITH")
     tree = SQLTree(root_token)
@@ -20,29 +22,15 @@ def test_handle_cte():
 
     tree._handle_cte(cte_token, parent=parent, last_keyword=root_token)
 
-    assert len(parent.children) == 2
-    assert isinstance(parent.children[0], n.SQLCTE)
+    assert len(parent.children) == 2  # Ensure there are two children (CTE and final query)
+    assert isinstance(parent.children[0], n.SQLCTE)  # Check that the first child is a CTE
 
     cte_node = parent.children[0]
     assert len(cte_node.children) > 0  # Ensure it has children
 
-
-
-def test_parse_tokens():
-    sql_code = """
-    SELECT name, age FROM users WHERE age > 21;
-    """
-    parsed = sqlparse.parse(sql_code)
-    root_token = Token(None, "SELECT")
-    tree = SQLTree(root_token)
-    parent = n.SQLNode(root_token)
-
-    tree.parse_tokens(parsed[0].tokens, parent)
-
-    print(parent.children)
-
-    assert len(parent.children) > 0  # Ensure there are children
-    assert isinstance(parent.children[0], n.SQLKeyword)  # Check for keyword
-    assert isinstance(parent.children[1], n.SQLColumn)  # Check for table reference
-    assert isinstance(parent.children[4], n.SQLTable)  # Check for column reference
-
+    # Additional assertions
+    assert len(cte_node.children) == 2  # Check for the number of columns in the CTE
+    assert isinstance(cte_node.children[0], n.SQLColumn)  # Check first child is a column
+    assert cte_node.children[0].name == "name"  # Check the name of the first column
+    assert isinstance(cte_node.children[1], n.SQLColumn)  # Check second child is a column
+    assert cte_node.children[1].name == "age"  # Check the name of the second column

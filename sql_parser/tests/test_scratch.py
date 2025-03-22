@@ -4,11 +4,13 @@ from sqlparse.sql import IdentifierList, Token
 from sql_parser import node as n
 
 def test_handle_cte():
-    # AI! update this test case by ingesting the `testing.sql` code
+    with open('sql_parser/tests/tmp/testing.sql', 'r') as file:
+        sql_code = file.read()
+    
     root_token = Token(None, "WITH")
     tree = SQLTree(root_token)
     parent = n.SQLNode(root_token)
-    cte_token = IdentifierList([Token(None, "SELECT * FROM table")])
+    cte_token = IdentifierList([Token(None, sql_code)])
     last_keyword = Token(None, "WITH")
 
     tree._handle_cte(cte_token, parent, last_keyword)

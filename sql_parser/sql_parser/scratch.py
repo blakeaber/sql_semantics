@@ -56,7 +56,7 @@ class SQLTree:
 
     def parse_tokens(self, tokens, parent, last_keyword=None):
         """Recursively parses SQL tokens into a structured tree, using token peeking."""
-        # AI! add a test case and multiple assertions for this function
+        # AI! add a test case and multiple assertions  in `test_scratch.py` for this function
 
         # TODO: add identification of subqueries when used as tables
         # TODO: Add comparisons, where clauses, case statements, functions

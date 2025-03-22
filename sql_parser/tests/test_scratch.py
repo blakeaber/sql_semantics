@@ -25,3 +25,8 @@ def test_handle_cte():
 
     cte_node = parent.children[0]
     assert len(cte_node.children) > 0  # Ensure it has children
+
+
+def test_parse_tokens():
+    # AI create a test case
+    pass

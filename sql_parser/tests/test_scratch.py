@@ -4,6 +4,7 @@ from sqlparse.sql import IdentifierList, Token
 from sql_parser import node as n
 
 def test_handle_cte():
+    # AI! update this test case by ingesting the `testing.sql` code
     root_token = Token(None, "WITH")
     tree = SQLTree(root_token)
     parent = n.SQLNode(root_token)
@@ -14,5 +15,3 @@ def test_handle_cte():
 
     assert len(parent.children) == 1
     assert isinstance(parent.children[0], n.SQLCTE)
-
-# Remove the AI comment

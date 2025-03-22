@@ -32,3 +32,19 @@ def test_handle_cte():
     assert len(cte_node.children) == 3  # Check for the number of columns in the CTE
     assert isinstance(cte_node.children[0], n.SQLTable)  # Check first child is a table
     assert isinstance(cte_node.children[2], n.SQLSubquery)  # Check second child is a column
+
+def test_parse_tokens():
+    sql_code = """
+    SELECT name, age FROM users WHERE age > 21;
+    """
+    parsed = sqlparse.parse(sql_code)
+    root_token = Token(None, "SELECT")
+    tree = SQLTree(root_token)
+    parent = n.SQLNode(root_token)
+
+    tree.parse_tokens(parsed[0].tokens, parent)
+
+    assert len(parent.children) > 0  # Ensure there are children
+    assert isinstance(parent.children[0], n.SQLKeyword)  # Check for keyword
+    assert isinstance(parent.children[1], n.SQLTable)  # Check for table reference
+    assert isinstance(parent.children[2], n.SQLColumn)  # Check for column reference

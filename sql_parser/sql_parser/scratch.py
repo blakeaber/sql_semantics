@@ -1,4 +1,3 @@
-
 from collections.abc import Iterable
 
 from sqlparse.sql import Identifier, IdentifierList, Function, Comparison, Case, Where, Parenthesis, Comment, TokenList
@@ -6,6 +5,7 @@ from sqlparse.tokens import CTE, DML, Keyword, Punctuation, Name
 from itertools import tee
 
 from sql_parser import node as n
+from sql_parser.utils import log_parsing_step, extract_comparison, is_window_function, is_aggregate_function  # Added imports
 
 
 def peekable(iterable):
@@ -69,6 +69,12 @@ class SQLTree:
 
             elif is_subquery(token):
                 self._handle_subquery(token, parent)
+
+            elif is_window_function(token):  # Added handling for window functions
+                self._handle_window_function(token, parent)
+
+            elif is_aggregate_function(token):  # Added handling for aggregate functions
+                self._handle_aggregate_function(token, parent)
 
             elif is_column(token, last_keyword=last_keyword):
                 self._handle_column_ref(token, parent)

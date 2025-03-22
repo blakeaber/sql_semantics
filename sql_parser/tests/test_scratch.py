@@ -8,7 +8,7 @@ from sql_parser import (
 
 
 def test_handle_cte():
-    # AI use this as an example for future test cases
+    # AI? suggest a simpler SQL query that could be hard-coded inside this function to test it?
     with open('sql_parser/scripts/testing.sql', 'r') as file:
         sql_code = file.read()
         parsed = sqlparse.parse(sql_code)
@@ -27,6 +27,22 @@ def test_handle_cte():
     assert len(cte_node.children) > 0  # Ensure it has children
 
 
+
 def test_parse_tokens():
-    # AI create a test case
-    pass
+    sql_code = """
+    SELECT name, age FROM users WHERE age > 21;
+    """
+    parsed = sqlparse.parse(sql_code)
+    root_token = Token(None, "SELECT")
+    tree = SQLTree(root_token)
+    parent = n.SQLNode(root_token)
+
+    tree.parse_tokens(parsed[0].tokens, parent)
+
+    print(parent.children)
+
+    assert len(parent.children) > 0  # Ensure there are children
+    assert isinstance(parent.children[0], n.SQLKeyword)  # Check for keyword
+    assert isinstance(parent.children[1], n.SQLColumn)  # Check for table reference
+    assert isinstance(parent.children[4], n.SQLTable)  # Check for column reference
+

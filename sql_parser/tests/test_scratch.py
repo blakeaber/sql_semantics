@@ -4,7 +4,6 @@ from sqlparse.sql import IdentifierList, Token
 from sql_parser import node as n
 
 def sql_test():
-    # AI this code can be used for CTE test case
     snippet = """
     WITH department_salaries AS (
         SELECT 
@@ -33,12 +32,13 @@ def sql_test():
     return parsed[0]
 
 def test_handle_cte():
-    # AI! update this test case by ingesting the `testing.sql` code
-    sql_statement = sql_test()
+    with open('sql_parser/tests/tmp/testing.sql', 'r') as file:
+        sql_code = file.read()
+    
     root_token = Token(None, "WITH")
     tree = SQLTree(root_token)
     parent = n.SQLNode(root_token)
-    cte_token = IdentifierList([Token(None, sql_statement)])
+    cte_token = IdentifierList([Token(None, sql_code)])
     last_keyword = Token(None, "WITH")
 
     tree._handle_cte(cte_token, parent, last_keyword)

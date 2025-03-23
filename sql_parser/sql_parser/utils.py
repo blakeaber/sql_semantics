@@ -1,3 +1,4 @@
+
 import hashlib
 import logging
 import sqlparse
@@ -48,30 +49,3 @@ def normalize_sql(sql):
     """
     parsed = sqlparse.format(sql, reindent=True, keyword_case='upper')
     return parsed.strip()
-
-def extract_comparison(token):
-    """
-    Extracts structured information from a SQL comparison (e.g., WHERE, JOIN).
-    
-    Example:
-        - WHERE age >= 21 -> ("age", ">=", "21")
-        - ON users.id = orders.user_id -> ("users.id", "=", "orders.user_id")
-    """
-    left, operator, right = None, None, None
-    for sub_token in token.tokens:
-        if isinstance(sub_token, sqlparse.sql.Identifier):
-            if left is None:
-                left = sub_token.get_real_name()
-            else:
-                right = sub_token.get_real_name()
-        elif sub_token.ttype in (sqlparse.tokens.Comparison, sqlparse.tokens.Keyword):
-            operator = sub_token.value
-    return left, operator, right
-
-def is_subquery(token):
-    """
-    Checks if a token represents a subquery (nested SELECT inside parentheses).
-    """
-    return isinstance(token, sqlparse.sql.Parenthesis) and any(
-        t.ttype is sqlparse.tokens.DML and t.value.upper() == "SELECT" for t in token.tokens
-    )

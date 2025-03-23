@@ -5,7 +5,6 @@ from sqlparse.tokens import CTE, DML, Keyword, Punctuation, Name
 from itertools import tee
 
 from sql_parser import node as n
-from sql_parser.utils import log_parsing_step, extract_comparison  # Removed is_window_function and is_aggregate_function imports
 
 
 def peekable(iterable):
@@ -23,6 +22,26 @@ def clean_tokens(tokens):
             not (token.ttype == Punctuation)
         )
     ])
+
+def extract_comparison(token):
+    """
+    Extracts structured information from a SQL comparison (e.g., WHERE, JOIN).
+    
+    Example:
+        - WHERE age >= 21 -> ("age", ">=", "21")
+        - ON users.id = orders.user_id -> ("users.id", "=", "orders.user_id")
+    """
+    # AI reference this comparison function
+    left, operator, right = None, None, None
+    for sub_token in token.tokens:
+        if isinstance(sub_token, Identifier):
+            if left is None:
+                left = sub_token.get_real_name()
+            else:
+                right = sub_token.get_real_name()
+        elif sub_token.ttype in (Comparison, Keyword):
+            operator = sub_token.value
+    return left, operator, right
 
 def is_whitespace(token=None):
     return token.is_whitespace or isinstance(token, Comment) or (token.ttype == Punctuation)
@@ -53,13 +72,11 @@ def is_window_function(token):
     """
     Checks if a function is a window function (e.g., RANK() OVER ...).
     """
-    return isinstance(token, sqlparse.sql.Function) and "OVER" in token.value.upper()
+    return isinstance(token, Function) and "OVER" in token.value.upper()
 
-def is_aggregate_function(token):
-    """
-    Detects if a token represents an aggregate function (e.g., SUM, COUNT).
-    """
-    return isinstance(token, sqlparse.sql.Function) and token.get_real_name() in {"SUM", "COUNT", "AVG", "MIN", "MAX"}
+def is_comparison(token):
+    # AI write this boolean function to identify comparison tokens
+    pass
 
 
 class SQLTree:
@@ -82,11 +99,11 @@ class SQLTree:
             elif is_subquery(token):
                 self._handle_subquery(token, parent)
 
-            elif is_window_function(token):  # Added handling for window functions
-                self._handle_window_function(token, parent)
+            elif is_window_function(token):
+                self._handle_window(token, parent)
 
-            elif is_aggregate_function(token):  # Added handling for aggregate functions
-                self._handle_aggregate_function(token, parent)
+            elif is_comparison(token):
+                self._handle_comparison(token, parent)
 
             elif is_column(token, last_keyword=last_keyword):
                 self._handle_column_ref(token, parent)
@@ -200,9 +217,103 @@ class SQLTree:
 
     def _handle_comparison(self, token, parent):
         """Handles comparison operators (e.g., col = value)."""
+        # AI! update this function so that it parses Comparison tokens and 
+        # generates child nodes for left, operator, and right tokens
         print("Comparison:", token)
         cmp_node = n.SQLComparison(token)
         parent.add_child(cmp_node)
+
+
+
+def _handle_where(where_token, context_node):
+    # update this function to parse the WHERE clause, based on conditions below:
+    # if the token is a Comparison, then it is a SQLCondition object
+    # if the last Keyword is a LogicalCondition operator, then it is a SQLCondition object
+    # if the token is a Parenthesis, then it is a nested SQLSubquery object
+    condition_node = n.SQLSegment("WHERE", "Where")
+
+    def extract_conditions(token, parent_node):
+        if isinstance(token, n.Comparison):
+            left, operator, right = extract_comparison(token)
+            comparison_node = n.SQLSegment(f"{left} {operator} {right}", "Comparison")
+            parent_node.add_child(comparison_node)
+        elif token.is_keyword and token.value.upper() in {"AND", "OR"}:
+            logical_node = n.SQLSegment(token.value.upper(), "LogicalCondition")
+            parent_node.add_child(logical_node)
+        elif isinstance(token, Parenthesis):
+            nested_node = n.SQLSegment("NestedCondition", "Where")
+            extract_conditions(token, nested_node)
+            parent_node.add_child(nested_node)
+
+    for token in where_token.tokens:
+        extract_conditions(token, condition_node)
+
+    context_node.add_child(condition_node)
+
+
+    def _handle_case(case_token, context_node):
+        # update this function to parse the WINDOW clause, based on conditions below:
+        # if the last Keyword is "WHEN", then it is a SQLCondition object
+        # if the last Keyword is "THEN" or "ELSE" , then it is a SQLLiteral object
+        # else, it is a SQLNode object
+        case_node = n.SQLFeature("CASE", "Feature")
+
+        for sub_token in case_token.get_sublists():  # Ensure sub-token traversal
+            if sub_token.match(Keyword, "WHEN"):
+                when_condition = extract_comparison(sub_token)
+                when_node = n.SQLCondition()
+                case_node.add_child(when_node)
+            elif sub_token.match(Keyword, "THEN"):
+                then_value = sub_token.get_real_name()
+                then_node = n.SQLCondition()
+                case_node.add_child(then_node)
+            elif sub_token.match(Keyword, "ELSE"):
+                else_value = sub_token.get_real_name()
+                else_node = n.SQLCondition()
+                case_node.add_child(else_node)
+
+        context_node.add_child(case_node)
+
+
+    def _handle_window(function_token, context_node):
+        # update this function to parse the WINDOW clause, based on conditions below:
+        # if the last Keyword is "PARTITION BY" or "ORDER BY", then it is a SQLColumn object
+        # else, it is a SQLNode object
+        function_name = function_token.get_real_name()
+        window_node = n.SQLFeature(function_name, "WindowFunction")
+
+        for sub_token in function_token.tokens:
+            if sub_token.match(Keyword, "PARTITION BY"):
+                partition_node = n.SQLSegment("PARTITION BY", "WindowPartition")
+                window_node.add_child(partition_node)
+            elif sub_token.match(Keyword, "ORDER BY"):
+                order_node = n.SQLSegment("ORDER BY", "WindowOrdering")
+                window_node.add_child(order_node)
+
+        context_node.add_child(window_node)
+
+
+
+    def _handle_having(having_token, context_node):
+        # update this function to parse the HAVING clause
+        # add three children for the left, operator and right tokens
+        having_node = n.SQLSegment("HAVING", "Having")
+
+        for token in having_token.tokens:
+            if isinstance(token, Comparison):
+                left, operator, right = extract_comparison(token)
+                condition_node = n.SQLSegment(f"{left} {operator} {right}", "Comparison")
+                having_node.add_child(condition_node)
+
+        context_node.add_child(having_node)
+
+
+    def _handle_order_limit_offset(statement, context_node):
+        # write logic that adds objects to the tree, based on conditions below:
+        # if the last Keyword is "ORDER BY", then it is a SQLColumn object
+        # else, it is a SQLNode object
+        pass
+
 
     def _handle_other(self, token, parent):
         """Handles unclassified tokens (e.g., literals, operators)."""

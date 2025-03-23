@@ -50,4 +50,4 @@ def normalize_sql(sql):
 
 def contains_quotes(string):
     """Checks if the given string contains single or double quotes."""
-    return "'" in string or '"' in string
+    return ("'" in string) or ('"' in string)

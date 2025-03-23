@@ -48,14 +48,14 @@ def normalize_sql(sql):
     parsed = sqlparse.format(sql, reindent=True, keyword_case='upper')
     return parsed.strip()
 
-def contains_quotes(string):
+def contains_quotes(token):
     """Checks if the given string contains single or double quotes."""
-    return ("'" in string) or ('"' in string)
+    return ("'" in token.value) or ('"' in token.value)
 
-def is_numeric(string):
+def is_numeric(token):
     """Checks if the given string is numeric."""
     try:
-        float(string)  # Try converting to float
+        float(token.value)  # Try converting to float
         return True
     except ValueError:
         return False

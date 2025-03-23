@@ -1,7 +1,7 @@
 import sqlparse
 from sql_parser.scratch import SQLTree, clean_tokens
 from sqlparse.sql import IdentifierList, Token, TokenList
-from sqlparse.tokens import CTE
+from sqlparse.tokens import CTE, DML
 from sql_parser import node as n
 
 def test_handle_cte():
@@ -24,8 +24,6 @@ def test_handle_cte():
     assert isinstance(parent.children[0], n.SQLCTE)  # Check that the first child is a CTE
 
     cte_node = parent.children[0]
-    print(cte_node.children)
-
     assert len(cte_node.children) > 0  # Ensure it has children
 
     # Additional assertions
@@ -38,13 +36,14 @@ def test_parse_tokens():
     SELECT name, age FROM users WHERE age > 21;
     """
     parsed = sqlparse.parse(sql_code)
-    root_token = Token(None, "SELECT")
+    root_token = Token(DML, "SELECT")
     tree = SQLTree(root_token)
     parent = n.SQLNode(root_token)
 
     tree.parse_tokens(parsed[0].tokens, parent)
+    print(parent.children)
 
     assert len(parent.children) > 0  # Ensure there are children
     assert isinstance(parent.children[0], n.SQLKeyword)  # Check for keyword
-    assert isinstance(parent.children[1], n.SQLTable)  # Check for table reference
-    assert isinstance(parent.children[2], n.SQLColumn)  # Check for column reference
+    assert isinstance(parent.children[2], n.SQLColumn)  # Check for table reference
+    assert isinstance(parent.children[4], n.SQLTable)  # Check for column reference

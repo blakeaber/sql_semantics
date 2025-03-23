@@ -4,7 +4,7 @@ from sqlparse.sql import Identifier, IdentifierList, Function, Comparison, Case,
 from sqlparse.tokens import CTE, DML, Keyword, Punctuation, Name
 from itertools import tee
 
-from sql_parser import node as n
+from sql_parser import node as n, utils as u
 
 
 def peekable(iterable):
@@ -23,30 +23,11 @@ def clean_tokens(tokens):
         )
     ])
 
-def extract_comparison(token):
-    """
-    Extracts structured information from a SQL comparison (e.g., WHERE, JOIN).
-    
-    Example:
-        - WHERE age >= 21 -> ("age", ">=", "21")
-        - ON users.id = orders.user_id -> ("users.id", "=", "orders.user_id")
-    """
-    left, operator, right = None, None, None
-    for sub_token in token.tokens:
-        if isinstance(sub_token, Identifier):
-            if left is None:
-                left = sub_token.get_real_name()
-            else:
-                right = sub_token.get_real_name()
-        elif sub_token.ttype in (Comparison, Keyword):
-            operator = sub_token.value
-    return left, operator, right
-
 def is_whitespace(token=None):
     return token.is_whitespace or isinstance(token, Comment) or (token.ttype == Punctuation)
 
 def is_keyword(token=None):
-    return token.ttype in (CTE, DML, Keyword)
+    return (token.ttype in (CTE, DML, Keyword)) and (not is_logical_operator(token))
 
 def is_cte(token=None, last_keyword=None):
     return last_keyword.match(CTE, ["WITH"]) and isinstance(token, IdentifierList)
@@ -80,11 +61,33 @@ def is_comparison(token, last_keyword=None):
 
 def is_logical_operator(token, last_keyword=None):
     """Identifies if the token is a logical operator."""
-    return token.ttype in (Keyword,) and token.value.upper() in {"AND", "OR", "NOT"}
+    operators = {"AND", "OR", "NOT", "=", "!=", "<", ">", "<=", ">="}
+    return isinstance(token, Keyword) and token.value.upper() in operators
 
 def is_where_or_having(token, last_keyword=None):
     """Identifies if the token is a WHERE or HAVING clause."""
     return isinstance(token, Where) or last_keyword.match(Keyword, ["HAVING"])
+
+def extract_comparison(token):
+    """
+    Extracts structured information from a SQL comparison (e.g., WHERE, JOIN).
+    
+    Example:
+        - WHERE age >= 21 -> ("age", ">=", "21")
+        - ON users.id = orders.user_id -> ("users.id", "=", "orders.user_id")
+    """
+    left, operator, right = None, None, None
+    for sub_token in token.tokens:
+        if isinstance(sub_token, Identifier):
+            if left is None:
+                left = sub_token.get_real_name()
+            else:
+                right = sub_token.get_real_name()
+        elif is_logical_operator(sub_token):
+            operator = sub_token.value
+        else:
+            pass
+    return left, operator, right
 
 
 class SQLTree:
@@ -220,9 +223,9 @@ class SQLTree:
         comparison_node.add_child(n.SQLNode(operator))
         comparison_node.add_child(n.SQLNode(right))
 
-    def _handle_where_or_having(self, where_token, context_node):
+    def _handle_where_or_having(self, token, parent):
         """Handles WHERE or HAVING clauses."""
-        condition_node = n.SQLSegment("WHERE", "Where")
+        segment_node = n.SQLSegment(token)
 
         def extract_conditions(token, parent_node):
             if is_comparison(token):
@@ -237,10 +240,10 @@ class SQLTree:
                 parent_node.add_child(nested_node)
                 self.parse_tokens(token, nested_node)  # Recursively process nested subquery
 
-        for token in where_token.tokens:
-            extract_conditions(token, condition_node)
+        for token in token.tokens:
+            extract_conditions(token, segment_node)
 
-        context_node.add_child(condition_node)
+        parent.add_child(segment_node)
 
     def _handle_case(self, case_token, context_node):
         # update this function to parse the WINDOW clause, based on conditions below:

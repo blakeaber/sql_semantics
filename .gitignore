@@ -3,3 +3,5 @@
 *.ipynb
 *.DS_Store
 __pycache__/
+.aider*
+.env

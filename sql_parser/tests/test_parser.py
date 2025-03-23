@@ -1,8 +1,8 @@
 import sqlparse
-from sql_parser.sql_parser.parser import SQLTree, clean_tokens
-from sqlparse.sql import IdentifierList, Token, TokenList
+from sql_parser.parser import SQLTree
+from sqlparse.sql import Token, TokenList
 from sqlparse.tokens import CTE, DML
-from sql_parser import node as n
+from sql_parser import node as n, utils as u
 
 def test_handle_cte():
     sql_code = """
@@ -16,7 +16,7 @@ def test_handle_cte():
 
     root_token = Token(CTE, "WITH")
     parent = n.SQLNode(root_token)
-    cte_token = TokenList(clean_tokens(statement.tokens)[1:2])
+    cte_token = TokenList(u.clean_tokens(statement.tokens)[1:2])
 
     tree._handle_cte(cte_token, parent=parent, last_keyword=root_token)
 

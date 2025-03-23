@@ -1,10 +1,12 @@
+
 import hashlib
 import logging
-import sqlparse
-from sqlparse.sql import Identifier, Function, Case, Where, Parenthesis
-from sqlparse.tokens import Keyword, Comparison
+from itertools import tee
 
-from sql_parser import node as n
+import sqlparse
+from sqlparse.tokens import Punctuation
+from sqlparse.sql import Comment, TokenList
+
 
 # Configure logging
 logging.basicConfig(
@@ -19,21 +21,20 @@ def log_parsing_step(step_name, node):
     """Logs structured information about the current parsing step."""
     logger.debug(f"{step_name}: {node.node_type} -> {node.name} [UID: {node.uid}]")
 
-def generate_uid(node_type, name, table_prefix=None, function=None):
+def generate_uid(node_type, name, table_prefix=None):
     """
     Generates a unique identifier (UID) for a SQL node.
     Ensures deduplication across queries.
     """
-    base_str = f"{node_type}:{table_prefix}:{name}:{function}"
-    return hashlib.md5(base_str.encode()).hexdigest()[:10]  # Short hash
+    value = f"{node_type}:{table_prefix}:{name}"
+    return get_short_hash(value)
 
-
-def hash_value(value):
+def get_short_hash(value):
     """
     Generates a short hash for a given value (e.g., WHERE condition values).
     
     Example:
-        hash_value("users.status='active'") -> "comp_a3f9c2b1"
+        hash_value("users.status='active'") -> "a3f9c2b1"
     """
     return f"comp_{hashlib.md5(value.encode()).hexdigest()[:10]}"
 
@@ -50,12 +51,30 @@ def normalize_sql(sql):
 
 def contains_quotes(token):
     """Checks if the given string contains single or double quotes."""
+    # AI reference this function
     return ("'" in token.value) or ('"' in token.value)
 
 def is_numeric(token):
     """Checks if the given string is numeric."""
+    # AI reference this function
     try:
         float(token.value)  # Try converting to float
         return True
     except ValueError:
         return False
+
+def peekable(iterable):
+    """Helper function to create a look-ahead iterator."""
+    items, next_items = tee(iterable)
+    next(next_items, None)  # Advance second iterator to get lookahead capability
+    return zip(items, next_items)
+
+def clean_tokens(tokens):
+    return TokenList([
+        token for token in tokens 
+        if (
+            not token.is_whitespace and 
+            not isinstance(token, Comment) and 
+            not (token.ttype == Punctuation)
+        )
+    ])

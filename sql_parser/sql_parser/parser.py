@@ -1,27 +1,8 @@
-from collections.abc import Iterable
 
-from sqlparse.sql import Identifier, IdentifierList, Function, Comparison, Case, Where, Parenthesis, Comment, TokenList
+from sqlparse.sql import Identifier, IdentifierList, Function, Comparison, Case, Where, Parenthesis, Comment
 from sqlparse.tokens import CTE, DML, Keyword, Punctuation, Name
-from itertools import tee
-
 from sql_parser import node as n, utils as u
 
-
-def peekable(iterable):
-    """Helper function to create a look-ahead iterator."""
-    items, next_items = tee(iterable)
-    next(next_items, None)  # Advance second iterator to get lookahead capability
-    return zip(items, next_items)
-
-def clean_tokens(tokens):
-    return TokenList([
-        token for token in tokens 
-        if (
-            not token.is_whitespace and 
-            not isinstance(token, Comment) and 
-            not (token.ttype == Punctuation)
-        )
-    ])
 
 def is_whitespace(token=None):
     return token.is_whitespace or isinstance(token, Comment) or (token.ttype == Punctuation)
@@ -55,6 +36,15 @@ def is_window(token):
     """
     return isinstance(token, Function) and "OVER" in token.value.upper()
 
+def is_function(token):
+    return (
+        isinstance(token, Identifier) and 
+        any(
+            (t.is_keyword or isinstance(t, Function)) 
+            for t in token.tokens 
+            if t.value.upper() != 'AS')
+    )
+
 def is_comparison(token, last_keyword=None):
     """Identifies if the token is a comparison."""
     return isinstance(token, Comparison)
@@ -68,7 +58,7 @@ def is_where_or_having(token, last_keyword=None):
     """Identifies if the token is a WHERE or HAVING clause."""
     return isinstance(token, Where) or last_keyword.match(Keyword, ["HAVING"])
 
-def extract_comparison(token):
+def extract_comparison(token, parent):
     """
     Extracts structured information from a SQL comparison (e.g., WHERE, JOIN).
     
@@ -76,15 +66,16 @@ def extract_comparison(token):
         - WHERE age >= 21 -> ("age", ">=", "21")
         - ON users.id = orders.user_id -> ("users.id", "=", "orders.user_id")
     """
-    left, operator, right = None, None, None
+    # AI! update this function so it 
     for sub_token in token.tokens:
-        if isinstance(sub_token, Identifier):
+        if u.contains_quotes(sub_token) or u.is_numeric(sub_token):
+            parent.add_child(sub_token.get_real_name())
             if left is None:
                 left = sub_token.get_real_name()
             else:
                 right = sub_token.get_real_name()
         elif is_logical_operator(sub_token):
-            operator = sub_token.value
+            operator = n.SQLOperator(sub_token)
         else:
             pass
     return left, operator, right
@@ -136,7 +127,7 @@ class SQLTree:
             
             return last_keyword
 
-        for token, next_token in peekable(clean_tokens(tokens)):
+        for token, next_token in u.peekable(u.clean_tokens(tokens)):
             print("token:", token)
             last_keyword = parse_control_flow(token, last_keyword)
 
@@ -153,7 +144,7 @@ class SQLTree:
 
     def _handle_cte(self, token, parent, last_keyword):
         """Handles SQL CTEs"""
-        for cte in clean_tokens(token.tokens):
+        for cte in u.clean_tokens(token.tokens):
             print("CTE:", cte)
             cte_node = n.SQLCTE(cte)
             parent.add_child(cte_node)
@@ -193,7 +184,7 @@ class SQLTree:
     def _handle_column_ref(self, token, parent):
         """Handles SQL columns"""
         if isinstance(token, IdentifierList):
-            for token in clean_tokens(token.tokens):
+            for token in u.clean_tokens(token.tokens):
                 col_node = n.SQLColumn(token)
                 parent.add_child(col_node)
         elif isinstance(token, Identifier):

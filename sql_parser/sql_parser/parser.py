@@ -1,6 +1,4 @@
-
 from sqlparse.sql import Identifier, IdentifierList, Function, Comparison, Case, Where, Parenthesis, Comment
-from sqlparse.tokens import CTE, DML, Keyword, Punctuation, Name
 from sql_parser import node as n, utils as u
 
 
@@ -31,9 +29,6 @@ def is_table(token=None, last_keyword=None):
     return last_keyword.match(Keyword, ["WITH", "FROM", "UPDATE", "INTO"]) or ("JOIN" in last_keyword.value)
 
 def is_window(token):
-    """
-    Checks if a function is a window function (e.g., RANK() OVER ...).
-    """
     return isinstance(token, Function) and "OVER" in token.value.upper()
 
 def is_function(token):
@@ -46,27 +41,19 @@ def is_function(token):
     )
 
 def is_comparison(token, last_keyword=None):
-    """Identifies if the token is a comparison."""
     return isinstance(token, Comparison)
 
 def is_logical_operator(token, last_keyword=None):
-    """Identifies if the token is a logical operator."""
     operators = {"AND", "OR", "NOT", "=", "!=", "<", ">", "<=", ">="}
     return isinstance(token, Keyword) and token.value.upper() in operators
 
 def is_where_or_having(token, last_keyword=None):
-    """Identifies if the token is a WHERE or HAVING clause."""
     return isinstance(token, Where) or last_keyword.match(Keyword, ["HAVING"])
 
 def extract_comparison(token, parent):
-    """
-    Extracts structured information from a SQL comparison (e.g., WHERE, JOIN).
-    
-    Example:
-        - WHERE age >= 21 -> ("age", ">=", "21")
-        - ON users.id = orders.user_id -> ("users.id", "=", "orders.user_id")
-    """
-    # AI! update this function so it 
+    left = None
+    right = None
+    operator = None
     for sub_token in token.tokens:
         if u.contains_quotes(sub_token) or u.is_numeric(sub_token):
             parent.add_child(sub_token.get_real_name())
@@ -86,10 +73,6 @@ class SQLTree:
         self.root = n.SQLNode(root_token)
 
     def parse_tokens(self, tokens, parent, last_keyword=None):
-        """Recursively parses SQL tokens into a structured tree, using token peeking."""
-        # TODO: add identification of subqueries when used as tables
-        # TODO: Add where clauses, case statements, functions
-
         def parse_control_flow(token, last_keyword):
             if is_keyword(token):
                 last_keyword = token
@@ -131,19 +114,16 @@ class SQLTree:
             print("token:", token)
             last_keyword = parse_control_flow(token, last_keyword)
 
-        # ensure last token gets processed...
         print("next:", next_token)
         last_keyword = parse_control_flow(next_token, last_keyword)
 
 
     def _handle_keyword(self, token, parent):
-        """Handles SQL keywords (e.g., SELECT, FROM, WHERE)."""
         print("Keyword:", token)
         keyword_node = n.SQLKeyword(token)
         parent.add_child(keyword_node)
 
     def _handle_cte(self, token, parent, last_keyword):
-        """Handles SQL CTEs"""
         for cte in u.clean_tokens(token.tokens):
             print("CTE:", cte)
             cte_node = n.SQLCTE(cte)
@@ -151,7 +131,6 @@ class SQLTree:
             self.parse_tokens(cte, cte_node, last_keyword)
 
     def _handle_identifier_list(self, token, parent, last_keyword):
-        """Handles lists of identifiers (e.g., column lists)."""
         print("Identifier List:", token)
         id_list_node = n.SQLIdentifierList(token)
         parent.add_child(id_list_node)
@@ -160,7 +139,6 @@ class SQLTree:
             self.parse_tokens([id_token], parent, last_keyword)
 
     def _handle_identifier(self, token, parent, last_keyword):
-        """Handles identifiers, determining if they are columns, tables, aliases, or functions."""
         print("Identifier:", token)
 
         if is_table(token, last_keyword):
@@ -171,18 +149,16 @@ class SQLTree:
             node = n.SQLSubquery(token)
             self.parse_tokens(token, node)
         else:
-            node = n.SQLNode(token)  # Generic fallback
+            node = n.SQLNode(token)
 
         parent.add_child(node)
 
     def _handle_table_ref(self, token, parent):
-        """Handles SQL tables"""
         print("Table:", token)
         table_node = n.SQLTable(token)
         parent.add_child(table_node)
 
     def _handle_column_ref(self, token, parent):
-        """Handles SQL columns"""
         if isinstance(token, IdentifierList):
             for token in u.clean_tokens(token.tokens):
                 col_node = n.SQLColumn(token)
@@ -193,20 +169,18 @@ class SQLTree:
         elif isinstance(token, Case) or isinstance(token, Function):
             feature_node = n.SQLFeature(token)
             parent.add_child(feature_node)
-            self.parse_tokens(token, feature_node)  # Process feature arguments
+            self.parse_tokens(token, feature_node)
         else:
             col_node = n.SQLNode(token)
             parent.add_child(col_node)
 
     def _handle_subquery(self, token, parent):
-        """Handles subqueries (enclosed in parentheses)."""
         print("Subquery:", token)
         subquery_node = n.SQLSubquery(token)
         parent.add_child(subquery_node)
-        self.parse_tokens(token, subquery_node)  # Recursively process subquery
+        self.parse_tokens(token, subquery_node)
 
     def _handle_comparison(self, token, parent):
-        """Handles comparison operators (e.g., col = value)."""
         left, operator, right = extract_comparison(token)
         comparison_node = n.SQLComparison(token)
         parent.add_child(comparison_node)
@@ -215,7 +189,6 @@ class SQLTree:
         comparison_node.add_child(n.SQLNode(right))
 
     def _handle_where_or_having(self, token, parent):
-        """Handles WHERE or HAVING clauses."""
         segment_node = n.SQLSegment(token)
 
         def extract_conditions(token, parent_node):
@@ -229,7 +202,7 @@ class SQLTree:
             elif is_subquery(token):
                 nested_node = n.SQLSubquery(token)
                 parent_node.add_child(nested_node)
-                self.parse_tokens(token, nested_node)  # Recursively process nested subquery
+                self.parse_tokens(token, nested_node)
 
         for token in token.tokens:
             extract_conditions(token, segment_node)
@@ -237,13 +210,9 @@ class SQLTree:
         parent.add_child(segment_node)
 
     def _handle_case(self, case_token, context_node):
-        # update this function to parse the WINDOW clause, based on conditions below:
-        # if the last Keyword is "WHEN", then it is a SQLCondition object
-        # if the last Keyword is "THEN" or "ELSE" , then it is a SQLLiteral object
-        # else, it is a SQLNode object
         case_node = n.SQLFeature("CASE", "Feature")
 
-        for sub_token in case_token.get_sublists():  # Ensure sub-token traversal
+        for sub_token in case_token.get_sublists():
             if sub_token.match(Keyword, "WHEN"):
                 when_condition = extract_comparison(sub_token)
                 when_node = n.SQLCondition()
@@ -260,9 +229,6 @@ class SQLTree:
         context_node.add_child(case_node)
 
     def _handle_window(self, function_token, context_node):
-        # update this function to parse the WINDOW clause, based on conditions below:
-        # if the last Keyword is "PARTITION BY" or "ORDER BY", then it is a SQLColumn object
-        # else, it is a SQLNode object
         function_name = function_token.get_real_name()
         window_node = n.SQLFeature(function_name, "WindowFunction")
 
@@ -277,8 +243,6 @@ class SQLTree:
         context_node.add_child(window_node)
 
     def _handle_having(self, having_token, context_node):
-        # update this function to parse the HAVING clause
-        # add three children for the left, operator and right tokens
         having_node = n.SQLSegment("HAVING", "Having")
 
         for token in having_token.tokens:
@@ -290,12 +254,8 @@ class SQLTree:
         context_node.add_child(having_node)
 
     def _handle_order_limit_offset(self, statement, context_node):
-        # write logic that adds objects to the tree, based on conditions below:
-        # if the last Keyword is "ORDER BY", then it is a SQLColumn object
-        # else, it is a SQLNode object
         pass
 
     def _handle_other(self, token, parent):
-        """Handles unclassified tokens (e.g., literals, operators)."""
         print("Other:", token)
         parent.add_child(n.SQLNode(token))

@@ -1,5 +1,5 @@
 import sqlparse
-from sql_parser.scratch import SQLTree, clean_tokens
+from sql_parser.sql_parser.parser import SQLTree, clean_tokens
 from sqlparse.sql import IdentifierList, Token, TokenList
 from sqlparse.tokens import CTE, DML
 from sql_parser import node as n

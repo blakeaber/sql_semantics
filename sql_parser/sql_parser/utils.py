@@ -47,3 +47,7 @@ def normalize_sql(sql):
     """
     parsed = sqlparse.format(sql, reindent=True, keyword_case='upper')
     return parsed.strip()
+
+def contains_quotes(string):
+    """Checks if the given string contains single or double quotes."""
+    return "'" in string or '"' in string

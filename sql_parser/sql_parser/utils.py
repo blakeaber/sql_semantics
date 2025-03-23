@@ -1,4 +1,3 @@
-
 import hashlib
 import logging
 import sqlparse
@@ -19,7 +18,6 @@ logger = logging.getLogger(__name__)
 def log_parsing_step(step_name, node):
     """Logs structured information about the current parsing step."""
     logger.debug(f"{step_name}: {node.node_type} -> {node.name} [UID: {node.uid}]")
-
 
 def generate_uid(node_type, name, table_prefix=None, function=None):
     """

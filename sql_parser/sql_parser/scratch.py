@@ -60,22 +60,27 @@ def is_subquery(token=None):
 def is_column(token=None, last_keyword=None):
     return (
         last_keyword.match(DML, ["SELECT"]) or 
-        last_keyword.match(Keyword, ["HAVING", "GROUP BY", "ORDER BY"]) or 
-        isinstance(last_keyword, Where)
+        last_keyword.match(Keyword, ["GROUP BY", "ORDER BY"])
     )
 
 def is_table(token=None, last_keyword=None):
-    return last_keyword.match(Keyword, ["FROM", "UPDATE", "INTO"]) or ("JOIN" in last_keyword.value)
+    if not last_keyword:
+        return
+    return last_keyword.match(Keyword, ["WITH", "FROM", "UPDATE", "INTO"]) or ("JOIN" in last_keyword.value)
 
-def is_window_function(token):
+def is_window(token):
     """
     Checks if a function is a window function (e.g., RANK() OVER ...).
     """
     return isinstance(token, Function) and "OVER" in token.value.upper()
 
-def is_comparison(token):
+def is_comparison(token, last_keyword=None):
     """Identifies if the token is a comparison."""
     return isinstance(token, Comparison)
+
+def is_where_or_having(token, last_keyword=None):
+    """Identifies if the token is a comparison."""
+    return isinstance(token, Where) or last_keyword.match(Keyword, ["HAVING"])
 
 
 class SQLTree:
@@ -98,16 +103,19 @@ class SQLTree:
             elif is_subquery(token):
                 self._handle_subquery(token, parent)
 
-            elif is_window_function(token):
+            elif is_window(token):
                 self._handle_window(token, parent)
 
-            elif is_comparison(token):
+            elif is_where_or_having(token, last_keyword):
+                self._handle_where_or_having(token, parent)
+
+            elif is_comparison(token, last_keyword):
                 self._handle_comparison(token, parent)
 
-            elif is_column(token, last_keyword=last_keyword):
+            elif is_column(token, last_keyword):
                 self._handle_column_ref(token, parent)
 
-            elif is_table(token, last_keyword=last_keyword):
+            elif is_table(token, last_keyword):
                 self._handle_table_ref(token, parent)
 
             elif isinstance(token, IdentifierList):
@@ -115,9 +123,6 @@ class SQLTree:
 
             elif isinstance(token, Identifier):
                 self._handle_identifier(token, parent, last_keyword)
-
-            elif (token.ttype == Name):
-                self._handle_name(token, parent, last_keyword)
 
             else:
                 self._handle_other(token, parent)
@@ -160,25 +165,13 @@ class SQLTree:
         """Handles identifiers, determining if they are columns, tables, aliases, or functions."""
         print("Identifier:", token)
 
-        if last_keyword and (
-            last_keyword.match(CTE, ["WITH"]) or 
-            last_keyword.match(Keyword, ["FROM", "JOIN", "UPDATE", "INTO"])):
+        if is_table(token, last_keyword):
             node = n.SQLTable(token)
-        elif last_keyword.match(Keyword, ["SELECT", "WHERE", "HAVING", "GROUP BY", "ORDER BY"]):
+        elif is_column(token, last_keyword):
             node = n.SQLColumn(token)
-        elif last_keyword.match(Keyword, ["AS"]) and is_subquery(token):
+        elif is_subquery(token):
             node = n.SQLSubquery(token)
             self.parse_tokens(token, node)
-        else:
-            node = n.SQLNode(token)  # Generic fallback
-
-        parent.add_child(node)
-
-    def _handle_name(self, token, parent, last_keyword):
-        """Handles names, determining if they are columns, tables, aliases, or functions."""
-        print("Name:", token)
-        if last_keyword.match(CTE, ["WITH"]):
-            node = n.SQLTable(token)
         else:
             node = n.SQLNode(token)  # Generic fallback
 
@@ -217,14 +210,16 @@ class SQLTree:
     def _handle_comparison(self, token, parent):
         """Handles comparison operators (e.g., col = value)."""
         left, operator, right = extract_comparison(token)
-        parent.add_child(n.SQLSegment(left, "Left"))
-        parent.add_child(n.SQLSegment(operator, "Operator"))
-        parent.add_child(n.SQLSegment(right, "Right"))
+        comparison_node = n.SQLComparison(token)
+        parent.add_child(comparison_node)
+        comparison_node.add_child(n.SQLNode(left))
+        comparison_node.add_child(n.SQLNode(operator))
+        comparison_node.add_child(n.SQLNode(right))
 
-    def _handle_where(self, where_token, context_node):
-        # update this function to parse the WHERE clause, based on conditions below:
-        # if the token is a Comparison, then it is a SQLCondition object
-        # if the last Keyword is a LogicalCondition operator, then it is a SQLCondition object
+    def _handle_where_or_having(self, where_token, context_node):
+        # AI! update this function to parse the WHERE or HAVING clause, based on the following conditions:
+        # if the token is a Comparison, then it is a SQLSegment object
+        # if the last Keyword is a SQL logical operator, then it is a SQLSegment object
         # if the token is a Parenthesis, then it is a nested SQLSubquery object
         condition_node = n.SQLSegment("WHERE", "Where")
 

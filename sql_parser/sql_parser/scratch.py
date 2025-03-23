@@ -79,7 +79,7 @@ def is_comparison(token, last_keyword=None):
     return isinstance(token, Comparison)
 
 def is_where_or_having(token, last_keyword=None):
-    """Identifies if the token is a comparison."""
+    """Identifies if the token is a WHERE or HAVING clause."""
     return isinstance(token, Where) or last_keyword.match(Keyword, ["HAVING"])
 
 
@@ -217,24 +217,21 @@ class SQLTree:
         comparison_node.add_child(n.SQLNode(right))
 
     def _handle_where_or_having(self, where_token, context_node):
-        # AI! update this function to parse the WHERE or HAVING clause, based on the following conditions:
-        # if the token is a Comparison, then it is a SQLSegment object
-        # if the last Keyword is a SQL logical operator, then it is a SQLSegment object
-        # if the token is a Parenthesis, then it is a nested SQLSubquery object
+        """Handles WHERE or HAVING clauses."""
         condition_node = n.SQLSegment("WHERE", "Where")
 
         def extract_conditions(token, parent_node):
-            if isinstance(token, n.Comparison):
+            if is_comparison(token):
                 left, operator, right = extract_comparison(token)
                 comparison_node = n.SQLSegment(f"{left} {operator} {right}", "Comparison")
                 parent_node.add_child(comparison_node)
-            elif token.is_keyword and token.value.upper() in {"AND", "OR"}:
+            elif token.is_keyword and token.value.upper() in {"AND", "OR", "NOT"}:
                 logical_node = n.SQLSegment(token.value.upper(), "LogicalCondition")
                 parent_node.add_child(logical_node)
             elif isinstance(token, Parenthesis):
-                nested_node = n.SQLSegment("NestedCondition", "Where")
-                extract_conditions(token, nested_node)
+                nested_node = n.SQLSubquery(token)
                 parent_node.add_child(nested_node)
+                self.parse_tokens(token, nested_node)  # Recursively process nested subquery
 
         for token in where_token.tokens:
             extract_conditions(token, condition_node)

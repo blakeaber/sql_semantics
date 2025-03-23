@@ -51,3 +51,11 @@ def normalize_sql(sql):
 def contains_quotes(string):
     """Checks if the given string contains single or double quotes."""
     return ("'" in string) or ('"' in string)
+
+def is_numeric(string):
+    """Checks if the given string is numeric."""
+    try:
+        float(string)  # Try converting to float
+        return True
+    except ValueError:
+        return False

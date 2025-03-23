@@ -79,9 +79,8 @@ def is_comparison(token, last_keyword=None):
     return isinstance(token, Comparison)
 
 def is_logical_operator(token, last_keyword=None):
-    """Identifies if the token is a comparison."""
-    # AI! write a function that identifies logical operators
-    pass
+    """Identifies if the token is a logical operator."""
+    return token.ttype in (Keyword,) and token.value.upper() in {"AND", "OR", "NOT"}
 
 def is_where_or_having(token, last_keyword=None):
     """Identifies if the token is a WHERE or HAVING clause."""
@@ -230,7 +229,7 @@ class SQLTree:
                 left, operator, right = extract_comparison(token)
                 comparison_node = n.SQLSegment(f"{left} {operator} {right}", "Comparison")
                 parent_node.add_child(comparison_node)
-            elif token.is_keyword and token.value.upper() in {"AND", "OR", "NOT"}:
+            elif is_logical_operator(token):
                 logical_node = n.SQLSegment(token.value.upper(), "LogicalCondition")
                 parent_node.add_child(logical_node)
             elif is_subquery(token):

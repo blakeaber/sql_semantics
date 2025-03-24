@@ -67,9 +67,6 @@ class SQLTree:
     def __init__(self, root_token):
         self.root = n.SQLQuery(root_token)
 
-    # TODO: the ON keyword needs to trigger a SQLComparison parsing
-    # TODO: the _handle_table() function needs to handle subqueries (in a JOIN condition)
-
     def parse_tokens(self, tokens, parent, last_keyword=None):
         def parse_control_flow(token, last_keyword):
             if is_keyword(token):
@@ -90,11 +87,11 @@ class SQLTree:
                 self._handle_where(token, parent)
 
             elif is_relationship(token, last_keyword):
-                print('on', token)
+                print('relationship', token)
                 self._handle_connections(token, parent, n.SQLRelationship)
 
             elif is_segment(token, last_keyword):
-                print('having', token)
+                print('segment', token)
                 self._handle_connections(token, parent, n.SQLSegment)
 
             elif is_comparison(token):
@@ -110,7 +107,7 @@ class SQLTree:
 
             elif is_table(token, last_keyword):
                 print('table', token)
-                self._handle_table_ref(token, parent)
+                self._handle_table_ref(token, parent, last_keyword)
 
             elif isinstance(token, IdentifierList):
                 print('identifier list', token)
@@ -149,34 +146,40 @@ class SQLTree:
             self.parse_tokens([id_token], parent, last_keyword)
 
     def _handle_identifier(self, token, parent, last_keyword):
-        if is_table(token, last_keyword):
+        if is_subquery(token):
+            node = n.SQLSubquery(token)
+            self.parse_tokens(token, node)
+        elif is_table(token, last_keyword):
             node = n.SQLTable(token)
         elif is_column(token, last_keyword):
             node = n.SQLColumn(token)
-        elif is_subquery(token):
-            node = n.SQLSubquery(token)
-            self.parse_tokens(token, node)
         else:
             node = n.SQLNode(token)
 
         parent.add_child(node)
 
-    def _handle_table_ref(self, token, parent):
-        table_node = n.SQLTable(token)
-        parent.add_child(table_node)
+    def _handle_table_ref(self, token, parent, last_keyword):
+        if token.is_group and any(is_subquery(t) for t in token.tokens):
+            subquery_node = n.SQLSubquery(token)
+            parent.add_child(subquery_node)
+            self.parse_tokens(token, subquery_node, last_keyword)
+        else:
+            table_node = n.SQLTable(token)
+            parent.add_child(table_node)
 
     def _handle_column_ref(self, token, parent):
         if isinstance(token, IdentifierList):
             for token in u.clean_tokens(token.tokens):
                 col_node = n.SQLColumn(token)
                 parent.add_child(col_node)
-        elif isinstance(token, Identifier):
-            col_node = n.SQLColumn(token)
-            parent.add_child(col_node)
         elif isinstance(token, Case) or isinstance(token, Function):
             feature_node = n.SQLFeature(token)
             parent.add_child(feature_node)
             self.parse_tokens(token, feature_node)
+        elif isinstance(token, Identifier):
+            col_node = n.SQLColumn(token)
+            parent.add_child(col_node)
+
         else:
             col_node = n.SQLNode(token)
             parent.add_child(col_node)
@@ -192,6 +195,8 @@ class SQLTree:
                 parent.add_child(n.SQLLiteral(sub_token))
             elif is_logical_operator(sub_token):
                 parent.add_child(n.SQLOperator(sub_token))
+            elif is_subquery(sub_token):
+                self._handle_subquery(sub_token, parent)
             else:
                 parent.add_child(n.SQLColumn(sub_token))
 

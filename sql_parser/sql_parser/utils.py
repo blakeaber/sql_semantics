@@ -16,15 +16,42 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def log_parsing_step(log_step, node):
-    logger.debug(f"{log_step}: {node.__name__} -> {node.alias} {node.name} [UID: {node.uid}]")
+def log_parsing_step(log_step, node, level=0):
+    verbose_options = [logging.WARN, logging.INFO, logging.DEBUG]
+    output = f"{log_step}: {node.type} -> {node.alias} {node.name} [UID: {node.uid}]"
+    if verbose_options[level] == logging.WARN:
+        logger.warning(output)
+    elif verbose_options[level] == logging.INFO:
+        logger.info(output)
+    elif verbose_options[level] == logging.DEBUG:
+        logger.debug(output)
+    else:
+        pass
+
+def get_node_parent(node, token):
+    try:
+        node.parent = token.get_parent_name()
+    except AttributeError:
+        pass
+        
+
+def get_node_name(node, token):
+    try:
+        node.name = token.get_real_name()
+    except AttributeError:
+        pass
+
+def get_node_alias(node, token):
+    try:
+        node.alias = token.get_alias()
+    except AttributeError:
+        pass
 
 def get_short_hash(value):
-    return f"comp_{hashlib.md5(value.encode()).hexdigest()[:10]}"
+    return f"id_{hashlib.md5(value.encode()).hexdigest()[:20]}"
 
-def generate_uid(node_type, name, table_prefix=None):
-    value = f"{node_type}:{table_prefix}:{name}"
-    return get_short_hash(value)
+def generate_uid(node):
+    return f"{node.type}:{node.parent}:{node.name}:{node.alias}"
 
 def normalize_sql(sql):
     parsed = sqlparse.format(sql, reindent=True, keyword_case='upper')

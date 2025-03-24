@@ -1,28 +1,43 @@
 
 from sql_parser import utils as u
 
-CHAR_DISPLAY_LIMIT = 40
-
 
 class SQLNode:
     """Base class representing a node in the SQL parse tree."""
     
-    __slots__ = ["token", "children", "name", "parent", "alias"]
+    CHAR_DISPLAY_LIMIT = 40
+    __slots__ = [
+        "token", "type", "level", "children", 
+        "parent", "name", "alias", 
+        "uid_text", "uid"
+        ]
 
-    def __init__(self, token):
+    def __init__(self, token, level=None):
+
+        # ensures no "reference before assignment" logging errors
+        for attr in self.__slots__:
+            setattr(self, attr, None)
+
         self.token = token
-        self.children = []
+        self.type = self.__class__.__name__
+        self.level = level or 0
 
-        try:
-            self.name = token.get_real_name()
-            self.parent = token.get_parent_name()
-            self.alias = token.get_alias()
-        except:
-            pass
+        self.parent = u.get_node_parent(self, token)
+        self.name = u.get_node_name(self, token) or self.get_display_value()
+        self.alias = u.get_node_alias(self, token)
+
+        self.uid_text = u.generate_uid(self)
+        self.uid = u.get_short_hash(self.uid_text)
+
+        self.children = []
 
     def add_child(self, child_node):
         """Adds a child node to the current node."""
+        child_node.level = self.level + 1
         self.children.append(child_node)
+
+    def get_display_value(self):
+        return self.token.value.replace('\n', ' ')[:self.CHAR_DISPLAY_LIMIT]
 
     def traverse(self, depth=0):
         print('  ' * depth + repr(self))
@@ -31,8 +46,8 @@ class SQLNode:
 
     def __repr__(self):
         """Returns a string representation of the node."""
-        display_value = self.token.value.replace('\n', ' ')[:CHAR_DISPLAY_LIMIT]
-        ellipses = "..." if len(display_value) == 40 else ""
+        display_value = self.get_display_value()
+        ellipses = "..." if len(display_value) == self.CHAR_DISPLAY_LIMIT else ""
         return f"{self.__class__.__name__}({display_value}{ellipses})"
 
 

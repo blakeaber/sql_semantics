@@ -1,4 +1,3 @@
--- AI use this sql statement for test cases
 WITH RECURSIVE department_salaries AS (
     SELECT 
         d.department_name,

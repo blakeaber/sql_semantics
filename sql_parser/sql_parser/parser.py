@@ -12,6 +12,10 @@ class SQLTree:
     def __init__(self, root_token):
         self.root = n.SQLQuery(root_token)
 
+    # AI! is there any way to decouple the `self.parse_tokens()` function from the SQLTree
+    # object, so that it becomes a `parse_tokens()` function that can then be called
+    # within the object? Is recursive traversal within the object possible with this approach?
+
     # TODO: Inside Subquery, need to check for UNION, INTERSECT and SELECT keywords
     # TODO: when these exist, create individual (nested) subqueries (how?!)
 

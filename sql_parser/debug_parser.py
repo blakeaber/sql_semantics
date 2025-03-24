@@ -3,12 +3,12 @@ import sqlparse
 from sql_parser import (
     parser as s, 
     utils as u,
-    node as n
+    nodes as n
 )
 
 def main():
 
-    with open("./sql_parser/scripts/testing.sql") as f:
+    with open("./sql_parser/tests/input/testing.sql") as f:
         parsed = sqlparse.parse(u.normalize_sql(f.read()))
         if not parsed or not parsed[0].tokens:
             raise ValueError("Invalid or empty SQL query.")

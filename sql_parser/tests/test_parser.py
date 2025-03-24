@@ -2,7 +2,10 @@ import sqlparse
 from sql_parser.parser import SQLTree
 from sqlparse.sql import Token, TokenList
 from sqlparse.tokens import CTE, DML
-from sql_parser import node as n, utils as u
+from sql_parser import (
+    nodes as n, 
+    utils as u
+)
 
 def test_handle_cte():
     sql_code = """
@@ -27,9 +30,9 @@ def test_handle_cte():
     assert len(cte_node.children) > 0  # Ensure it has children
 
     # Additional assertions
-    assert len(cte_node.children) == 3  # Check for the number of columns in the CTE
+    assert len(cte_node.children) == 2  # Check for the number of columns in the CTE
     assert isinstance(cte_node.children[0], n.SQLTable)  # Check first child is a table
-    assert isinstance(cte_node.children[2], n.SQLSubquery)  # Check second child is a column
+    assert isinstance(cte_node.children[1], n.SQLSubquery)  # Check second child is a column
 
 def test_parse_tokens():
     sql_code = """

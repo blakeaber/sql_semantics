@@ -1,3 +1,4 @@
+
 import hashlib
 import logging
 from itertools import tee
@@ -15,15 +16,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def log_parsing_step(step_name, node):
-    logger.debug(f"{step_name}: {node.node_type} -> {node.name} [UID: {node.uid}]")
+def log_parsing_step(log_step, node):
+    logger.debug(f"{log_step}: {node.__name__} -> {node.alias} {node.name} [UID: {node.uid}]")
+
+def get_short_hash(value):
+    return f"comp_{hashlib.md5(value.encode()).hexdigest()[:10]}"
 
 def generate_uid(node_type, name, table_prefix=None):
     value = f"{node_type}:{table_prefix}:{name}"
     return get_short_hash(value)
-
-def get_short_hash(value):
-    return f"comp_{hashlib.md5(value.encode()).hexdigest()[:10]}"
 
 def normalize_sql(sql):
     parsed = sqlparse.format(sql, reindent=True, keyword_case='upper')

@@ -1,17 +1,8 @@
 
 import pytest
 import sqlparse
-from sql_parser import node as n
-from sql_parser.sql_parser.parser_old import parse_sql_to_tree
+from sql_parser import nodes as n
 from sql_parser.extractor import SQLTripleExtractor
-from sql_parser.utils import (
-    parse_where_conditions,
-    parse_case_statement,
-    parse_window_function,
-    parse_cte_recursive,
-    parse_having_clause,
-    parse_order_limit_offset
-)
 from sqlparse.sql import Where, Case, Function
 from sqlparse.tokens import Keyword, DML
 
@@ -178,7 +169,7 @@ def test_invalid_sql():
 
 def test_uid_deduplication():
     """Ensure multiple queries referencing the same column generate the same UID."""
-    from sql_parser.node import SQLColumn
+    from sql_parser.sql_parser.nodes import SQLColumn
     from sql_parser.utils import generate_uid
 
     uid1 = generate_uid("Column", "users.id")

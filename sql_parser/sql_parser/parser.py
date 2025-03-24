@@ -1,36 +1,36 @@
 from sqlparse.sql import Identifier, IdentifierList
 from sqlparse.tokens import Keyword
 from sql_parser import (
-    booleans as b,
+    logic as l,
     nodes as n, 
     utils as u
 )
 
 def parse_tokens(tokens, parent, last_keyword=None):
     def parse_control_flow(token, last_keyword):
-        if b.is_keyword(token):
+        if l.is_keyword(token):
             last_keyword = token
             _handle_keyword(token, parent, last_keyword)
 
-        elif b.is_cte(token, last_keyword):
+        elif l.is_cte(token, last_keyword):
             _handle_cte(token, parent, last_keyword)
 
-        elif b.is_subquery(token):
+        elif l.is_subquery(token):
             _handle_subquery(token, parent, last_keyword)
 
-        elif b.is_where(token):
+        elif l.is_where(token):
             _handle_where(token, parent, last_keyword)
 
-        elif b.is_connection(token, last_keyword):
+        elif l.is_connection(token, last_keyword):
             _handle_connection(token, parent, last_keyword)
 
-        elif b.is_comparison(token):
+        elif l.is_comparison(token):
             _handle_comparison(token, parent, last_keyword)
 
-        elif b.is_column(token, last_keyword):
+        elif l.is_column(token, last_keyword):
             _handle_column_ref(token, parent, last_keyword)
 
-        elif b.is_table(token, last_keyword):
+        elif l.is_table(token, last_keyword):
             _handle_table_ref(token, parent, last_keyword)
 
         elif isinstance(token, IdentifierList):
@@ -70,16 +70,16 @@ def _handle_identifier_list(token, parent, last_keyword):
     u.log_parsing_step('... Exited IdentifierList', parent, level=2)
 
 def _handle_identifier(token, parent, last_keyword):
-    if b.is_subquery(token):
+    if l.is_subquery(token):
         node_type = "Subquery"
         node = n.SQLSubquery(token)
         u.log_parsing_step('Entering Subquery...', node, level=2)
         parse_tokens(token, node, last_keyword)
         u.log_parsing_step('...Exiting Subquery', node, level=2)
-    elif b.is_table(token, last_keyword):
+    elif l.is_table(token, last_keyword):
         node_type = "Table"
         node = n.SQLTable(token)
-    elif b.is_column(token, last_keyword):
+    elif l.is_column(token, last_keyword):
         node_type = "Column"
         node = n.SQLColumn(token)
     else:
@@ -91,7 +91,7 @@ def _handle_identifier(token, parent, last_keyword):
     u.log_parsing_step(f'{node_type} added', node, level=log_level)
 
 def _handle_table_ref(token, parent, last_keyword):
-    if token.is_group and any(b.is_subquery(t) for t in token.tokens):
+    if token.is_group and any(l.is_subquery(t) for t in token.tokens):
         _handle_subquery(token, parent, last_keyword)
     else:
         table_node = n.SQLTable(token)
@@ -127,11 +127,11 @@ def _handle_comparison(token, parent, last_keyword):
             node = n.SQLLiteral(sub_token)
             parent.add_child(node)
             u.log_parsing_step('Comparison:Literal added', node, level=1)
-        elif b.is_logical_operator(sub_token):
+        elif l.is_logical_operator(sub_token):
             node = n.SQLOperator(sub_token)
             parent.add_child(node)
             u.log_parsing_step('Comparison:Operator added', node, level=1)
-        elif b.is_subquery(sub_token):
+        elif l.is_subquery(sub_token):
             u.log_parsing_step('Entering Comparison:Subquery...', parent, level=2)
             _handle_subquery(sub_token, parent, last_keyword)
             u.log_parsing_step('...Exiting Comparison:Subquery', parent, level=2)
@@ -146,7 +146,7 @@ def _handle_connection(token, parent, last_keyword):
     elif last_keyword.match(Keyword, ["HAVING"]):
         comparison_type = n.SQLSegment
 
-    if b.is_comparison(token):
+    if l.is_comparison(token):
         connection_node = comparison_type(token)
         _handle_comparison(token, connection_node, last_keyword)
         parent.add_child(connection_node)
@@ -158,16 +158,16 @@ def _handle_connection(token, parent, last_keyword):
 
 def _handle_where(token, parent, last_keyword=None):
     for token in u.clean_tokens(token.tokens):
-        if b.is_comparison(token):
+        if l.is_comparison(token):
             connection_node = n.SQLSegment(token)
             _handle_comparison(token, connection_node, last_keyword)
             parent.add_child(connection_node)
             u.log_parsing_step('Where:Segment added', connection_node, level=1)
-        elif b.is_keyword(token):
+        elif l.is_keyword(token):
             keyword_node = n.SQLKeyword(token)
             parent.add_child(keyword_node)
             u.log_parsing_step('Where:Keyword added', keyword_node, level=1)
-        elif b.is_logical_operator(token):
+        elif l.is_logical_operator(token):
             logical_node = n.SQLOperator(token)
             parent.add_child(logical_node)
             u.log_parsing_step('Where:Operator added', logical_node, level=1)

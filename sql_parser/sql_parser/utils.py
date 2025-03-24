@@ -50,6 +50,7 @@ def clean_tokens(tokens):
         if (
             not token.is_whitespace and 
             not isinstance(token, Comment) and 
-            not (token.ttype == Punctuation)
+            not (token.ttype == Punctuation) and
+            not (token.value == "AS")  # confuses sequential parsing; taken care of by sqlparse aliasing
         )
     ])

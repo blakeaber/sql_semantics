@@ -64,8 +64,8 @@ def test_cli_end_to_end():
     """Tests the full CLI pipeline: parsing, extracting triples, and saving output."""
     sql_query = "SELECT name FROM users WHERE age > 21;"
     
-    temp_sql_path = "./tests/tmp/temp_query.sql"
-    temp_output_path = "./tests/tmp/temp_output.json"
+    temp_sql_path = "./tests/input/integration.sql"
+    temp_output_path = "./tests/output/temp_output.json"
 
     # Create temp directory if missing
     os.makedirs(os.path.dirname(temp_sql_path), exist_ok=True)
@@ -76,7 +76,7 @@ def test_cli_end_to_end():
 
     # Run CLI command
     result = subprocess.run(
-        ["python", "scripts/run_parser.py", temp_sql_path, "--output", temp_output_path],
+        ["python", "debug_extractor.py", temp_sql_path, "--output", temp_output_path],
         capture_output=True, text=True
     )
 

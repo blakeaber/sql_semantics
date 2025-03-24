@@ -1,7 +1,10 @@
 
-from sqlparse.sql import Identifier, IdentifierList, Function, Comparison, Case, Where, Parenthesis, Comment, Token
+from sqlparse.sql import Identifier, IdentifierList, Function, Comparison, Case, Where, Parenthesis, Comment
 from sqlparse.tokens import Keyword, Punctuation, CTE, DML, Comparison as Operator
-from sql_parser import node as n, utils as u
+from sql_parser import (
+    nodes as n, 
+    utils as u
+)
 
 
 def is_whitespace(token):
@@ -10,8 +13,11 @@ def is_whitespace(token):
 def is_keyword(token):
     return (token.ttype in (CTE, DML, Keyword)) and (not is_logical_operator(token))
 
+def is_cte_name(last_keyword):
+    return (last_keyword.match(CTE, ["WITH"]) or last_keyword.match(Keyword, ["RECURSIVE"]))
+
 def is_cte(token, last_keyword):
-    return last_keyword.match(CTE, ["WITH"]) and isinstance(token, IdentifierList)
+    return is_cte_name(last_keyword) and isinstance(token, IdentifierList)
 
 def is_subquery(token):
     return (
@@ -31,7 +37,7 @@ def is_table(token, last_keyword):
         return False
     return (
         last_keyword.match(Keyword, ["FROM", "UPDATE", "INTO"]) or 
-        last_keyword.match(CTE, ["WITH"]) or 
+        is_cte_name(last_keyword) or 
         ("JOIN" in last_keyword.value)
     )
 
@@ -133,11 +139,11 @@ class SQLTree:
             self.parse_tokens(cte, cte_node, last_keyword)
 
     def _handle_identifier_list(self, token, parent, last_keyword):
-        id_list_node = n.SQLIdentifierList(token)
-        parent.add_child(id_list_node)
+        # id_list_node = n.SQLIdentifierList(token)
+        # parent.add_child(id_list_node)
 
-        for id_token in u.clean_tokens(token.get_identifiers()):
-            self.parse_tokens([id_token], parent, last_keyword)
+        for token in u.clean_tokens(token.get_identifiers()):
+            self.parse_tokens([token], parent, last_keyword)
 
     def _handle_identifier(self, token, parent, last_keyword):
         if is_subquery(token):

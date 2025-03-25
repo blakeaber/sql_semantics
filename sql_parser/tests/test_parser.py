@@ -1,8 +1,8 @@
 import sqlparse
-from sql_parser.parser import SQLTree
 from sqlparse.sql import Token, TokenList
 from sqlparse.tokens import CTE, DML
 from sql_parser import (
+    parser as p,
     nodes as n, 
     utils as u
 )
@@ -15,13 +15,13 @@ def test_handle_cte():
     SELECT * FROM simple_cte;
     """
     statement = sqlparse.parse(sql_code)[0]
-    tree = SQLTree(statement)
+    tree = p.SQLTree(statement)
 
     root_token = Token(CTE, "WITH")
     parent = n.SQLNode(root_token)
     cte_token = TokenList(u.clean_tokens(statement.tokens)[1:2])
 
-    tree._handle_cte(cte_token, parent=parent, last_keyword=root_token)
+    p._handle_cte(cte_token, parent=parent, last_keyword=root_token)
 
     assert len(parent.children) == 1  # Ensure there is one child (CTE)
     assert isinstance(parent.children[0], n.SQLCTE)  # Check that the first child is a CTE
@@ -40,10 +40,10 @@ def test_parse_tokens():
     """
     parsed = sqlparse.parse(sql_code)
     root_token = Token(DML, "SELECT")
-    tree = SQLTree(root_token)
+    tree = p.SQLTree(root_token)
     parent = n.SQLNode(root_token)
 
-    tree.parse_tokens(parsed[0].tokens, parent)
+    p.parse_tokens(parsed[0].tokens, parent)
     print(parent.children)
 
     assert len(parent.children) > 0  # Ensure there are children

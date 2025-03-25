@@ -26,15 +26,15 @@ class HandlerType(Enum):
     UNKNOWN = auto()
 
 
-def is_whitespace(token):
+def is_whitespace(token, context):
     return token.is_whitespace or isinstance(token, Comment) or (token.ttype == Punctuation)
 
 
-def is_keyword(token):
+def is_keyword(token, context):
     return (token.ttype in (CTE, DML, Keyword)) and (not l.base.is_logical_operator(token))
 
 
-def is_logical_operator(token):
+def is_logical_operator(token, context):
     return (token.ttype == Operator)
 
 

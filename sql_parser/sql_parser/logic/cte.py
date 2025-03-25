@@ -8,12 +8,12 @@ from sql_parser import (
 )
 
 
-def is_cte_name(last_keyword):
-    return (last_keyword.match(CTE, ["WITH"]) or last_keyword.match(Keyword, ["RECURSIVE"]))
+def is_cte_name(token, context):
+    return (context.last_keyword.match(CTE, ["WITH"]) or context.last_keyword.match(Keyword, ["RECURSIVE"]))
 
 
-def is_cte(token, last_keyword):
-    return is_cte_name(last_keyword) and isinstance(token, IdentifierList)
+def is_cte(token, context):
+    return is_cte_name(context.last_keyword) and isinstance(token, IdentifierList)
 
 
 class CTEHandler(l.base.BaseHandler):

@@ -8,10 +8,10 @@ from sql_parser import (
 )
 
 
-def is_column(token=None, last_keyword=None):
+def is_column(token, context):
     return (
-        last_keyword.match(DML, ["SELECT"]) or 
-        last_keyword.match(Keyword, ["GROUP BY", "ORDER BY"])
+        context.last_keyword.match(DML, ["SELECT"]) or 
+        context.last_keyword.match(Keyword, ["GROUP BY", "ORDER BY"])
     )
 
 

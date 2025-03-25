@@ -4,7 +4,7 @@ from sqlparse.tokens import Keyword, Punctuation, CTE, DML, Comparison as Operat
 from sql_parser import utils as u
 
 
-def is_function(token):
+def is_function(token, context):
     return (
         isinstance(token, Identifier) and 
         any(
@@ -13,5 +13,5 @@ def is_function(token):
         )
     )
 
-def is_window(token):
+def is_window(token, context):
     return isinstance(token, Function) and "OVER" in token.value.upper()

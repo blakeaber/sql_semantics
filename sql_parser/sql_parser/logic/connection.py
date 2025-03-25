@@ -7,12 +7,12 @@ from sql_parser import (
     utils as u
 )
 
-def is_comparison(token):
+def is_comparison(token, context):
     return isinstance(token, Comparison)
 
 
-def is_connection(token, last_keyword):
-    return last_keyword.match(Keyword, ["ON", "HAVING"])
+def is_connection(token, context):
+    return context.last_keyword.match(Keyword, ["ON", "HAVING"])
 
 
 class ComparisonHandler(l.base.BaseHandler):

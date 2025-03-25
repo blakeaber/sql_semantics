@@ -7,13 +7,13 @@ from sql_parser import (
 )
 
 
-def is_table(token, last_keyword):
-    if not last_keyword:
+def is_table(token, context):
+    if not context.last_keyword:
         return False
     return (
-        last_keyword.match(Keyword, ["FROM", "UPDATE", "INTO"]) or 
-        l.cte.is_cte_name(last_keyword) or 
-        ("JOIN" in last_keyword.value)
+        context.last_keyword.match(Keyword, ["FROM", "UPDATE", "INTO"]) or 
+        l.cte.is_cte_name(token, context.last_keyword) or 
+        ("JOIN" in context.last_keyword.value)
     )
 
 

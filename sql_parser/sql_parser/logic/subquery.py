@@ -8,7 +8,7 @@ from sql_parser import (
 )
 
 
-def is_subquery(token):
+def is_subquery(token, context):
     return (
         isinstance(token, Parenthesis) and
         any(t.match(DML, "SELECT") for t in token.tokens)

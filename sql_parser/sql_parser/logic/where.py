@@ -7,7 +7,7 @@ from sql_parser import (
 )
 
 
-def is_where(token):
+def is_where(token, context):
     return isinstance(token, Where)
 
 

@@ -1,10 +1,18 @@
 
-from sql_parser.logic.column import is_column
-from sql_parser.logic.connection import is_comparison, is_connection
-from sql_parser.logic.cte import is_cte_name, is_cte
-from sql_parser.logic.features import is_function, is_window
-from sql_parser.logic.keyword import is_keyword
-from sql_parser.logic.other import is_whitespace, is_logical_operator
-from sql_parser.logic.subquery import is_subquery
-from sql_parser.logic.table import is_table
-from sql_parser.logic.where import is_where
+from sql_parser import logic as l
+
+
+HANDLER_MAPPING: dict[l.base.HandlerType, l.base.BaseHandler] = {
+    l.base.HandlerType.COLUMN: l.keyword.ColumnHandler(),
+    l.base.HandlerType.COMPARISON: l.connection.ComparisonHandler(),
+    l.base.HandlerType.CONNECTION: l.connection.ConnectionHandler(),
+    l.base.HandlerType.CTE: l.cte.CTEHandler(),
+    l.base.HandlerType.FEATURE: l.feature.FeatureHandler(),
+    l.base.HandlerType.IDENTIFIER: l.identifier.IdentifierHandler(),
+    l.base.HandlerType.KEYWORD: l.base.KeywordHandler(),
+    l.base.HandlerType.OPERATOR: l.base.OperatorHandler(),
+    l.base.HandlerType.SUBQUERY: l.subquery.SubqueryHandler(),
+    l.base.HandlerType.TABLE: l.table.TableHandler(),
+    l.base.HandlerType.WHERE: l.where.WhereHandler(),
+    l.base.HandlerType.UNKNOWN: l.base.UnknownHandler()
+}

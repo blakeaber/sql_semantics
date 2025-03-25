@@ -1,6 +1,6 @@
 
 from sqlparse.tokens import Keyword
-from sql_parser.logic.base import BaseHandler
+from sql_parser.logic.base import HandlerType, BaseHandler
 from sql_parser.logic.cte import is_cte_name
 from sql_parser.logic.subquery import is_subquery
 from sql_parser import (
@@ -27,7 +27,12 @@ class TableHandler(BaseHandler):
         """
         if token.is_group and any(is_subquery(t, context) for t in token.tokens):
             subquery_context = context.copy(depth=context.depth + 1)
-            parser.dispatch_handler(token, parent, subquery_context)
+            parser.assign_handler(token, parent, subquery_context, HandlerType.SUBQUERY)
+            # if is_subquery(token, context):
+            #     subquery_context = context.copy(depth=context.depth + 1)
+            #     parser.assign_handler(token, parent, subquery_context, HandlerType.SUBQUERY)
+            # else:
+            #     continue
 
         else:
             table_node = n.SQLTable(token)

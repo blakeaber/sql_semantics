@@ -41,10 +41,13 @@ class ConnectionHandler(BaseHandler):
         else:
             u.log_parsing_step('Connection:{token} Failed!', token, level=2)
             return
+        
+        connection_node = comparison_type(token)
 
         if is_comparison(token, context):
-            connection_node = comparison_type(token)
+            parent.add_child(connection_node)
             connection_context = context.copy(depth=context.depth + 1)
-            parser.assign_handler(token, parent, connection_context, HandlerType.COMPARISON)
+            parser.assign_handler(token, connection_node, connection_context, HandlerType.COMPARISON)
         else:
-            parser.assign_handler(token, parent, connection_context, HandlerType.UNKNOWN)
+            parent.add_child(connection_node)
+            parser.assign_handler(token, connection_node, connection_context, HandlerType.UNKNOWN)

@@ -1,8 +1,8 @@
 
 from sqlparse.sql import Identifier, IdentifierList
 from sqlparse.tokens import Keyword, DML
+from sql_parser.logic.base import BaseHandler
 from sql_parser import (
-    logic as l,
     nodes as n,
     utils as u
 )
@@ -15,7 +15,7 @@ def is_column(token, context):
     )
 
 
-class ColumnHandler(l.base.BaseHandler):
+class ColumnHandler(BaseHandler):
     def handle(self, token, parent, parser, context):
         if isinstance(token, IdentifierList):
             for sub_token in u.clean_tokens(token.tokens):

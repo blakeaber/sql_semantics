@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 from sqlparse.sql import Comment
 from sqlparse.tokens import Keyword, CTE, DML, Punctuation, Comparison as Operator
 from sql_parser import (
-    logic as l,
     nodes as n,
     utils as u
 )
@@ -19,6 +18,7 @@ class HandlerType(Enum):
     FEATURE = auto()
     IDENTIFIER = auto()
     KEYWORD = auto()
+    LITERAL = auto()
     OPERATOR = auto()
     SUBQUERY = auto()
     TABLE = auto()
@@ -31,7 +31,11 @@ def is_whitespace(token, context):
 
 
 def is_keyword(token, context):
-    return (token.ttype in (CTE, DML, Keyword)) and (not l.base.is_logical_operator(token))
+    return (token.ttype in (CTE, DML, Keyword)) and (not is_logical_operator(token, context))
+
+
+def is_literal(token, context):
+    return u.contains_quotes(token) or u.is_numeric(token)
 
 
 def is_logical_operator(token, context):
@@ -65,6 +69,17 @@ class OperatorHandler(BaseHandler):
         operator_node = n.SQLOperator(token)
         parent.add_child(operator_node)
         u.log_parsing_step('Operator added!', operator_node, level=2)
+
+
+class LiteralHandler(BaseHandler):
+    def handle(self, token, parent, parser, context):
+        """
+        NOTE: `parser` and `context` attributes intentionally unused 
+        here unless handling subqueries
+        """
+        literal_node = n.SQLLiteral(token)
+        parent.add_child(literal_node)
+        u.log_parsing_step('Literal added!', literal_node, level=2)
 
 
 class UnknownHandler(BaseHandler):

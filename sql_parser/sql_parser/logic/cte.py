@@ -1,8 +1,8 @@
 
 from sqlparse.sql import IdentifierList
-from sqlparse.tokens import Keyword, CTE, DML
+from sqlparse.tokens import Keyword, CTE
+from sql_parser.logic.base import BaseHandler
 from sql_parser import (
-    logic as l,
     nodes as n,
     utils as u
 )
@@ -13,10 +13,10 @@ def is_cte_name(token, context):
 
 
 def is_cte(token, context):
-    return is_cte_name(context.last_keyword) and isinstance(token, IdentifierList)
+    return is_cte_name(token, context) and isinstance(token, IdentifierList)
 
 
-class CTEHandler(l.base.BaseHandler):
+class CTEHandler(BaseHandler):
     def handle(self, token, parent, parser, context):
         for cte in u.clean_tokens(token.tokens):
             cte_node = n.SQLCTE(cte)
@@ -33,3 +33,5 @@ class CTEHandler(l.base.BaseHandler):
             cte_context = context.copy(depth=context.depth + 1)
             parser.parse_tokens(cte, cte_node, cte_context)
             u.log_parsing_step('...Exiting CTE', cte_node, level=1)
+
+

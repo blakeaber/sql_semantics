@@ -7,7 +7,7 @@ class ParsingContext:
         self.last_keyword = last_keyword
         self.depth = depth
         self.visited = visited or set()
-        self.tripes = triples or set()
+        self.triples = triples or set()
 
     def copy(self, **kwargs):
         return ParsingContext(

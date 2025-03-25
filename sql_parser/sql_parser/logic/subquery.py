@@ -1,9 +1,9 @@
 
 from sqlparse.sql import Parenthesis
 from sqlparse.tokens import DML
+from sql_parser.logic.base import BaseHandler
 from sql_parser import (
     nodes as n,
-    logic as l, 
     utils as u
 )
 
@@ -15,7 +15,7 @@ def is_subquery(token, context):
     )
 
 
-class SubqueryHandler(l.base.BaseHandler):
+class SubqueryHandler(BaseHandler):
     def handle(self, token, parent, parser, context):
         """
         NOTE: `parser` and `context` attributes intentionally unused 

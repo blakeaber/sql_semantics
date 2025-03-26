@@ -8,34 +8,11 @@ This project parses SQL statements into a tree of semantically meaningful nodes,
 
 ## 📦 Modules
 
-### `parser.py`
-Defines the main parsing engine through the `SQLTree` class:
-- Traverses cleaned SQL tokens.
-- Dispatches to appropriate handlers using `HANDLER_MAPPING`.
-- Constructs a hierarchical parse tree with typed SQL nodes.
-
-### `nodes.py`
-Contains all node classes used to construct the SQL parse tree:
-- Base class: `SQLNode`
-- Specializations: `SQLTable`, `SQLColumn`, `SQLKeyword`, `SQLQuery`, `SQLCTE`, etc.
-- Nodes manage metadata (`token`, `alias`, `uri`, etc.) and parent-child relationships.
-
-### `context.py`
-Tracks parsing state with `ParsingContext`:
-- Records depth, visited tokens, and semantic triples (subject-predicate-object).
-- Enables lineage tracking or conversion to RDF/triple stores.
-
-### `registry.py`
-Maps `HandlerType` enums to actual handler implementations.
-- Clean separation of concerns.
-- Easily extendable with custom handlers.
-
-### `utils.py`
-Various utilities for:
-- Logging node construction and metadata.
-- Cleaning tokens (removes punctuation, whitespace, and problematic keywords like `AS`).
-- Short UID hash generation for nodes.
-- SQL normalization (via `sqlparse`).
+- **`parser.py`** – Parses cleaned SQL tokens into a tree.
+- **`nodes.py`** – Typed node classes for various SQL components.
+- **`context.py`** – Tracks parsing state and semantic triples.
+- **`registry.py`** – Maps handler types to handler classes.
+- **`utils.py`** – Helpers for token cleaning, hashing, and logging.
 
 ## ✅ Features
 
@@ -54,10 +31,88 @@ Various utilities for:
 - Currently fails to parse `SQLFeatures` correctly (e.g. CASE, WINDOW, and FUNCTION statements, represented as SQLColumn)
 - Currently fails to parse `SQLSegment` conditions in compound subqueries (e.g. UNION ALL, etc)
 
-## 🧰 Dependencies
+## 🚀 Quick Start: Parse SQL into a Tree
 
-- Python 3.7+
-- [`sqlparse`](https://github.com/andialbrecht/sqlparse)
+```python
+from sqlparse import parse
+from sql_parser.parser import SQLTree
 
-```bash
-pip install sqlparse
+sql = """
+WITH top_customers AS (
+    SELECT customer_id, SUM(total) as total_spent
+    FROM orders
+    GROUP BY customer_id
+    HAVING SUM(total) > 1000
+)
+SELECT c.name, t.total_spent
+FROM customers c
+JOIN top_customers t ON c.id = t.customer_id
+"""
+
+# Parse SQL using sqlparse
+tokens = parse(sql)[0].tokens
+
+# Build tree
+tree = SQLTree(tokens[0])
+tree.parse_tokens(tokens, tree.root)
+
+# Traverse and print tree
+tree.root.traverse()
+```
+
+#### Example Output
+```python
+SQLQuery(WITH top_customers AS ( SELECT customer_id, SUM(tot...)
+  SQLCTE(top_customers AS ( SELECT customer_id, SUM(total...
+    SQLFeature(SUM(total)...)
+  SQLKeyword(SELECT...)
+  SQLTable(customers...)
+  SQLRelationship(JOIN...)
+
+```
+
+## 🔗 Extract Semantic Triples
+```python
+from sql_parser.context import ParsingContext
+
+context = ParsingContext()
+tree.parse_tokens(tokens, tree.root, context)
+
+# Inspect RDF-style triples
+for triple in context.triples:
+    print(triple)
+```
+
+#### Example Output
+```python
+('sqlquery://None/None/None', 'hasSQLCTE', 'sqlcte://None/top_customers/None')
+('sqlcte://None/top_customers/None', 'hasSQLFeature', 'sqlfeature://orders/SUM/total_spent')
+```
+
+### 🧩 Extending the Parser
+To add a custom handler:
+
+Add a new entry in HandlerType enum.
+
+Create a handler class that inherits from BaseHandler.
+
+Add it to HANDLER_MAPPING in registry.py.
+
+Add recognition logic in get_handler_key() in parser.py.
+
+### 🧪 Testing
+You can validate the tree structure, triples, and handlers by:
+
+Asserting node types and parent/child relationships.
+
+Logging parsing steps via log_parsing_step() in utils.py.
+
+Comparing outputs across multiple SQL dialects.
+
+(Note: A test suite is not yet included in this release.)
+
+### 📄 License
+MIT License. Contributions welcome!
+
+### 🤝 Contributions
+Feel free to open issues, fork the repo, or submit PRs to add dialect support, improve node disambiguation, or extend the semantic model.

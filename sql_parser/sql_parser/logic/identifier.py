@@ -1,9 +1,6 @@
 
 from sqlparse.sql import IdentifierList
-from sql_parser.logic.base import HandlerType, BaseHandler
-from sql_parser.logic.table import is_table
-from sql_parser.logic.column import is_column
-from sql_parser.logic.subquery import is_subquery
+from sql_parser.logic.base import BaseHandler
 from sql_parser import utils as u
 
 

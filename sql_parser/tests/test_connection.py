@@ -3,6 +3,7 @@ from sqlparse.tokens import Keyword, Name, Operator
 from sqlparse.sql import Comparison, Token
 from sql_parser.logic.connection import is_comparison, is_connection, ComparisonHandler, ConnectionHandler
 from sql_parser.context import ParsingContext
+from sql_parser.parser import SQLTree
 from sql_parser.nodes import SQLNode
 
 
@@ -54,19 +55,21 @@ def test_is_connection_with_other_keyword(setup_context):
 
 
 def test_comparison_handler(setup_comparison_token, setup_parent, setup_context):
-    # Instantiate the parser
-    parser = None  # Replace with actual parser instantiation if needed
+    root = Token(Keyword, 'ROOT')
+    parser = SQLTree(root)
     handler = ComparisonHandler()
     handler.handle(setup_comparison_token, setup_parent, parser, setup_context)
 
-    assert len(setup_parent.children) == 1
+    assert len(setup_parent.children) == 3
     assert isinstance(setup_parent.children[0], SQLNode)
 
 
 def test_connection_handler_with_on(setup_connection_token, setup_parent, setup_context):
     setup_context.last_keyword = setup_connection_token
+    root = Token(Keyword, 'ROOT')
+    parser = SQLTree(root)
     handler = ConnectionHandler()
-    handler.handle(setup_connection_token, setup_parent, None, setup_context)
+    handler.handle(setup_connection_token, setup_parent, parser, setup_context)
 
     assert len(setup_parent.children) == 1
     assert isinstance(setup_parent.children[0], SQLNode)

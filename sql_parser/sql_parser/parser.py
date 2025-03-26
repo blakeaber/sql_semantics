@@ -55,14 +55,14 @@ class SQLTree:
         elif is_comparison(token, context):
             return HandlerType.COMPARISON
 
-        elif is_feature(token, context):
-            return HandlerType.FEATURE
-
         elif is_column(token, context):
             return HandlerType.COLUMN
 
         elif is_table(token, context):
             return HandlerType.TABLE
+
+        elif is_feature(token, context):
+            return HandlerType.FEATURE
 
         elif isinstance(token, IdentifierList) or isinstance(token, Identifier):
             return HandlerType.IDENTIFIER

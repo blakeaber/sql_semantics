@@ -3,7 +3,7 @@ from enum import Enum, auto
 from abc import ABC, abstractmethod
 
 from sqlparse.sql import Comment
-from sqlparse.tokens import Token, Keyword, CTE, DML, Punctuation, Comparison as Operator
+from sqlparse.tokens import Token, Keyword, CTE, DML, Punctuation, Operator
 from sql_parser import (
     nodes as n,
     utils as u

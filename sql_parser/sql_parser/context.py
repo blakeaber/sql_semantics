@@ -18,4 +18,4 @@ class ParsingContext:
         )
 
     def add_triple(self, subject, predicate, object_):
-        self.triples.append((subject, predicate, object_))
+        self.triples.add((subject, predicate, object_))

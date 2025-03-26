@@ -1,7 +1,8 @@
 
 from sqlparse.sql import Identifier, IdentifierList
 from sqlparse.tokens import Keyword, DML
-from sql_parser.logic.base import BaseHandler
+from sql_parser.logic.base import HandlerType, BaseHandler
+from sql_parser.logic.feature import is_feature
 from sql_parser import (
     nodes as n,
     utils as u
@@ -17,7 +18,10 @@ def is_column(token, context):
 
 class ColumnHandler(BaseHandler):
     def handle(self, token, parent, parser, context):
-        if isinstance(token, IdentifierList):
+        if is_feature(token, context):
+            parser.assign_handler(token, parent, context.copy(), HandlerType.FEATURE)
+
+        elif isinstance(token, IdentifierList):
             for sub_token in u.clean_tokens(token.tokens):
                 col_node = n.SQLColumn(sub_token)
                 parent.add_child(col_node)

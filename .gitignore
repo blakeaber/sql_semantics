@@ -22,3 +22,9 @@ htmlcov/
 
 # Ignore logs
 *.log
+
+.DS_Store
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v4/
+*.ipynb

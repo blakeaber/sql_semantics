@@ -16,3 +16,6 @@ class ParsingContext:
             visited=self.visited.copy(),
             triples=self.triples.copy()
         )
+
+    def add_triple(self, subject, predicate, object_):
+        self.triples.add((subject, predicate, object_))

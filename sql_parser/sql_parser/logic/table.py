@@ -28,11 +28,6 @@ class TableHandler(BaseHandler):
         if token.is_group and any(is_subquery(t, context) for t in token.tokens):
             subquery_context = context.copy(depth=context.depth + 1)
             parser.assign_handler(token, parent, subquery_context, HandlerType.SUBQUERY)
-            # if is_subquery(token, context):
-            #     subquery_context = context.copy(depth=context.depth + 1)
-            #     parser.assign_handler(token, parent, subquery_context, HandlerType.SUBQUERY)
-            # else:
-            #     continue
 
         else:
             table_node = n.SQLTable(token)

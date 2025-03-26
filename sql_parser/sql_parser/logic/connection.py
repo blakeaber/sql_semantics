@@ -50,4 +50,4 @@ class ConnectionHandler(BaseHandler):
             parser.assign_handler(token, connection_node, connection_context, HandlerType.COMPARISON)
         else:
             parent.add_child(connection_node)
-            parser.assign_handler(token, connection_node, connection_context, HandlerType.UNKNOWN)
+            parser.assign_handler(token, connection_node, context.copy(), HandlerType.UNKNOWN)

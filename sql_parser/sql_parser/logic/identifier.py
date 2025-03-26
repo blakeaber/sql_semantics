@@ -1,9 +1,6 @@
 
 from sqlparse.sql import IdentifierList
-from sql_parser.logic.base import HandlerType, BaseHandler
-from sql_parser.logic.table import is_table
-from sql_parser.logic.column import is_column
-from sql_parser.logic.subquery import is_subquery
+from sql_parser.logic.base import BaseHandler
 from sql_parser import utils as u
 
 
@@ -23,14 +20,4 @@ class IdentifierHandler(BaseHandler):
             u.log_parsing_step('Identifier group exited', parent, level=2)
 
         else:
-            if is_subquery(token):
-                handler = HandlerType.SUBQUERY
-            elif is_table(token, context.last_keyword):
-                handler = HandlerType.TABLE
-            elif is_column(token, context.last_keyword):
-                handler = HandlerType.COLUMN
-            else:
-                handler = HandlerType.UNKNOWN
-
-            handler.handle(token, parent, parser, context)
-            parser.assign_handler(token, parent, context.copy(), handler)
+            parser.dispatch_handler(token, parent, context.copy())

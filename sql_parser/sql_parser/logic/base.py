@@ -3,7 +3,7 @@ from enum import Enum, auto
 from abc import ABC, abstractmethod
 
 from sqlparse.sql import Comment
-from sqlparse.tokens import Keyword, CTE, DML, Punctuation, Comparison as Operator
+from sqlparse.tokens import Token, Keyword, CTE, DML, Punctuation, Operator
 from sql_parser import (
     nodes as n,
     utils as u
@@ -35,7 +35,7 @@ def is_keyword(token, context):
 
 
 def is_literal(token, context):
-    return u.contains_quotes(token) or u.is_numeric(token)
+    return token.ttype in (Token.Literal.String.Single, Token.Literal.Number.Integer, Token.Literal.Number.Float)
 
 
 def is_logical_operator(token, context):

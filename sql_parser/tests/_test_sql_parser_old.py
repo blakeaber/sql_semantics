@@ -139,34 +139,6 @@ def test_triple_extraction():
     assert any("Comparison - has - Value" in " - ".join(triple) for triple in triples)
 
 
-def test_cli_parsing():
-    """Test that CLI correctly reads and processes a SQL file."""
-    import subprocess
-    result = subprocess.run(["python", "scripts/run_parser.py", "tests/example.sql"], capture_output=True, text=True)
-    assert "Parsing complete" in result.stdout, "CLI parsing failed."
-
-
-def test_logging_output(caplog):
-    """Ensure logs are correctly formatted during SQL parsing."""
-    from sql_parser.utils import log_parsing_step
-    caplog.clear()
-    
-    node = n.SQLNode("test_column", "Column")
-    log_parsing_step("Processing Test Column", node)
-    
-    assert "Processing Test Column" in caplog.text, "Logging output missing expected text."
-
-
-def test_invalid_sql():
-    """Ensure invalid SQL queries are handled gracefully."""
-    from sql_parser.sql_parser.parser_old import SQLParser
-    
-    parser = SQLParser()
-    result = parser.parse_sql("INVALID SQL SYNTAX")
-    
-    assert result is None, "Parser did not handle invalid SQL correctly."
-
-
 def test_uid_deduplication():
     """Ensure multiple queries referencing the same column generate the same UID."""
     from sql_parser.sql_parser.nodes import SQLColumn

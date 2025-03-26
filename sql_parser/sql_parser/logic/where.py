@@ -1,5 +1,6 @@
 
 from sqlparse.sql import Where
+from sqlparse.tokens import Keyword
 from sql_parser.logic.base import BaseHandler, HandlerType, is_keyword, is_logical_operator
 from sql_parser.logic.connection import is_comparison
 from sql_parser import (
@@ -10,6 +11,10 @@ from sql_parser import (
 
 def is_where(token, context):
     return isinstance(token, Where)
+
+
+def is_complex_condition(token):
+    return token.match(Keyword, ("IN", "LIKE", "BETWEEN", "IS", "NOT"))
 
 
 class WhereHandler(BaseHandler):

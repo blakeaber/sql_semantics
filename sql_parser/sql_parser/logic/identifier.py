@@ -23,14 +23,4 @@ class IdentifierHandler(BaseHandler):
             u.log_parsing_step('Identifier group exited', parent, level=2)
 
         else:
-            if is_subquery(token):
-                handler = HandlerType.SUBQUERY
-            elif is_table(token, context.last_keyword):
-                handler = HandlerType.TABLE
-            elif is_column(token, context.last_keyword):
-                handler = HandlerType.COLUMN
-            else:
-                handler = HandlerType.UNKNOWN
-
-            handler.handle(token, parent, parser, context)
-            parser.assign_handler(token, parent, context.copy(), handler)
+            parser.dispatch_handler(token, parent, context.copy())

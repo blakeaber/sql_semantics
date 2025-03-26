@@ -5,6 +5,7 @@ from sql_parser.registry import HANDLER_MAPPING, HandlerType
 from sql_parser.logic.base import is_keyword
 from sql_parser.logic.cte import is_cte
 from sql_parser.logic.connection import is_comparison, is_connection
+from sql_parser.logic.feature import is_feature
 from sql_parser.logic.column import is_column
 from sql_parser.logic.table import is_table
 from sql_parser.logic.where import is_where
@@ -21,7 +22,6 @@ class SQLTree:
 
     def parse_tokens(self, tokens, parent, context=None):
         context = context or ParsingContext()
-
         for token, next_token in u.peekable(u.clean_tokens(tokens)):
             self.dispatch_handler(token, parent, context)
         self.dispatch_handler(next_token, parent, context)
@@ -54,6 +54,9 @@ class SQLTree:
 
         elif is_comparison(token, context):
             return HandlerType.COMPARISON
+
+        elif is_feature(token, context):
+            return HandlerType.FEATURE
 
         elif is_column(token, context):
             return HandlerType.COLUMN

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def log_parsing_step(log_step, node, level=0):
     verbose_options = [logging.WARN, logging.INFO, logging.DEBUG]
-    output = f"{log_step}: {node.type} -> {node.alias} {node.name} [UID: {node.uid}]"
+    output = f"{log_step}: {node.type} -> {node.alias} {node.name} [UID: {node.uri}]"
     if verbose_options[level] == logging.WARN:
         logger.warning(output)
     elif verbose_options[level] == logging.INFO:
@@ -48,7 +48,9 @@ def get_node_alias(node, token):
         pass
 
 def get_short_hash(value):
-    return f"id_{hashlib.md5(value.encode()).hexdigest()[:20]}"
+    hash_object = hashlib.sha256(value.encode("utf-8"))
+    hash_bytes = hash_object.digest()
+    return int.from_bytes(hash_bytes, byteorder="big")
 
 def generate_uid(node):
     return f"{node.type}:{node.parent}:{node.name}:{node.alias}"
@@ -56,16 +58,6 @@ def generate_uid(node):
 def normalize_sql(sql):
     parsed = sqlparse.format(sql, reindent=True, keyword_case='upper')
     return parsed.strip()
-
-def contains_quotes(token):
-    return ("'" in token.value) or ('"' in token.value)
-
-def is_numeric(token):
-    try:
-        float(token.value)
-        return True
-    except ValueError:
-        return False
 
 def peekable(iterable):
     items, next_items = tee(iterable)

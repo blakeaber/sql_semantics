@@ -18,6 +18,7 @@ def setup_identifier_token():
 
 @pytest.fixture
 def setup_identifier_list_token():
+    # Example of creating an IdentifierList
     return IdentifierList([Identifier('column1'), Identifier('column2')])
 
 

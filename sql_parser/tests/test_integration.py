@@ -1,5 +1,6 @@
 import pytest
 from sqlparse.sql import Token
+from sqlparse.tokens import Keyword
 from sql_parser.parser import SQLTree
 from sql_parser.context import ParsingContext
 from sql_parser.nodes import SQLNode

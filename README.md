@@ -1,16 +1,8 @@
-
-### **🔹 Recommended `README.md` for Your SQL Parsing Project**
-A well-structured `README.md` ensures users and developers can quickly understand **what your project does, how to install it, and how to use it**.
-
----
-
-## **📌 Example `README.md`**
-```
 # SQL Parsing Library
 
 🚀 **A modular Python library for parsing complex SQL queries into structured trees and extracting semantic relationships.**
 
-## **📖 Features**
+## 📖 Features
 - ✅ Parses SQL **SELECT**, **CTE**, **CASE**, **JOIN**, **WHERE**, **HAVING**, **WINDOW**, and **ORDER BY** clauses.
 - ✅ Builds **hierarchical trees** from SQL queries.
 - ✅ Extracts **subject-predicate-object triples** for **knowledge graphs**.
@@ -19,32 +11,32 @@ A well-structured `README.md` ensures users and developers can quickly understan
 
 ---
 
-## **📥 Installation**
-### **1️⃣ Clone the Repository**
+## 📥 Installation
+### 1️⃣ Clone the Repository
 ```sh
 git clone https://github.com/your-repo/sql-parser.git
 cd sql-parser
 ```
-### **2️⃣ Create a Virtual Environment**
+### 2️⃣ Create a Virtual Environment
 ```sh
 python3 -m venv venv
 source venv/bin/activate  # macOS/Linux
 venv\Scripts\activate     # Windows
 ```
-### **3️⃣ Install Dependencies**
+### 3️⃣ Install Dependencies
 ```sh
 pip install -r requirements.txt
 ```
 
 ---
 
-## **🚀 Usage**
-### **🔹 1️⃣ Parsing SQL Queries**
+## 🚀 Usage
+### 🔹 1️⃣ Parsing SQL Queries
 Run the parser from `scripts/run_parser.py`:
 ```sh
 python scripts/run_parser.py "SELECT name FROM users WHERE age > 21"
 ```
-### **🔹 2️⃣ Extracting Relationships as Triples**
+### 🔹 2️⃣ Extracting Relationships as Triples
 Run:
 ```sh
 python scripts/run_parser.py --triples "SELECT name FROM users WHERE age > 21"
@@ -59,7 +51,7 @@ WHERE - has - Comparison: age > 21
 
 ---
 
-## **🛠️ File Structure**
+## 🛠️ File Structure
 ```
 sql_parser_project/
 │── sql_parser/                # Core parsing logic
@@ -85,19 +77,19 @@ sql_parser_project/
 
 ---
 
-## **🧪 Running Tests**
-### **Run All Tests**
+## 🧪 Running Tests
+### Run All Tests
 ```sh
 pytest tests/ -v
 ```
-### **Run a Specific Test**
+### Run a Specific Test
 ```sh
 pytest tests/test_sql_parser.py::test_parse_where_conditions -v
 ```
 
 ---
 
-## **📌 Supported SQL Features**
+## 📌 Supported SQL Features
 | Feature | Supported |
 |---------|-----------|
 | ✅ Basic `SELECT` Queries | ✅ Yes |
@@ -111,7 +103,7 @@ pytest tests/test_sql_parser.py::test_parse_where_conditions -v
 
 ---
 
-## **🔍 Example SQL Query Parsing**
+## 🔍 Example SQL Query Parsing
 ```python
 from sql_parser.parser import parse_sql_to_tree
 
@@ -132,8 +124,8 @@ QueryBlock
 
 ---
 
-## **📌 Contributing**
-### **📢 Want to contribute?**
+## 📌 Contributing
+### 📢 Want to contribute?
 1. **Fork the repo**.
 2. **Create a feature branch** (`feature/my-feature`).
 3. **Commit changes** (`git commit -m "Added new feature"`).
@@ -142,13 +134,12 @@ QueryBlock
 
 ---
 
-## **📄 License**
+## 📄 License
 This project is licensed under the **MIT License**.
 
 ---
 
-## **📬 Contact**
+## 📬 Contact
 For questions, feel free to reach out:
 📧 **Email:** `your_email@example.com`  
 🔗 **GitHub:** [your-repo](https://github.com/your-repo)  
-```

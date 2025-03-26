@@ -12,6 +12,9 @@ def setup_context():
 
 
 @pytest.fixture
+# AI! fix the code below because it throws the following error
+# >   [setattr(token, 'parent', self) for token in self.tokens]
+# E   AttributeError: 'str' object has no attribute 'parent'
 def setup_token_identifier():
     return Identifier('column_name')
 

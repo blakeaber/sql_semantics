@@ -1,16 +1,63 @@
-# SQL Parser
+# SQL Parser Framework
 
-This project is an open-source SQL parser that provides functionality to parse SQL queries into a structured format. It supports various SQL features and constructs, allowing users to analyze and manipulate SQL statements programmatically.
+A modular, extensible framework for parsing SQL queries into rich semantic trees. Designed for advanced SQL analysis, transformation, and lineage extraction.
 
-## Key Features
+## 🧠 Overview
 
-- **Parsing SQL Queries**: The parser can handle a wide range of SQL queries, including SELECT, INSERT, UPDATE, DELETE, and more.
-- **Support for Common SQL Constructs**: It recognizes and processes common SQL constructs such as keywords, identifiers, literals, operators, and subqueries.
-- **Extensible Architecture**: The parser is designed to be extensible, allowing developers to add custom handlers for new SQL features or modify existing behavior.
-- **Error Handling**: The parser includes mechanisms for error detection and reporting, making it easier to debug SQL queries.
-- **Integration with SQLAlchemy**: The parser can be integrated with SQLAlchemy for enhanced database interaction and ORM capabilities.
+This project parses SQL statements into a tree of semantically meaningful nodes, each with type-safe representation (`SQLTable`, `SQLColumn`, `SQLKeyword`, etc.). It supports flexible dispatching of handlers for each type of token, and allows building structured, query-aware data representations (e.g., graphs or triple stores).
 
-## Installation
+## 📦 Modules
 
-To install the SQL parser, clone the repository and install the required dependencies:
+### `parser.py`
+Defines the main parsing engine through the `SQLTree` class:
+- Traverses cleaned SQL tokens.
+- Dispatches to appropriate handlers using `HANDLER_MAPPING`.
+- Constructs a hierarchical parse tree with typed SQL nodes.
 
+### `nodes.py`
+Contains all node classes used to construct the SQL parse tree:
+- Base class: `SQLNode`
+- Specializations: `SQLTable`, `SQLColumn`, `SQLKeyword`, `SQLQuery`, `SQLCTE`, etc.
+- Nodes manage metadata (`token`, `alias`, `uri`, etc.) and parent-child relationships.
+
+### `context.py`
+Tracks parsing state with `ParsingContext`:
+- Records depth, visited tokens, and semantic triples (subject-predicate-object).
+- Enables lineage tracking or conversion to RDF/triple stores.
+
+### `registry.py`
+Maps `HandlerType` enums to actual handler implementations.
+- Clean separation of concerns.
+- Easily extendable with custom handlers.
+
+### `utils.py`
+Various utilities for:
+- Logging node construction and metadata.
+- Cleaning tokens (removes punctuation, whitespace, and problematic keywords like `AS`).
+- Short UID hash generation for nodes.
+- SQL normalization (via `sqlparse`).
+
+## ✅ Features
+
+- Tree-based SQL parse structure.
+- Custom handlers for query components (CTEs, WHERE clauses, joins, features, etc.).
+- Semantic triple generation for graph-style analysis.
+- Lightweight context tracking.
+- Hashable node UIDs for traceability and reproducibility.
+
+## ⚠️ Caveats
+
+- Relies on `sqlparse`, which lacks full SQL grammar support (e.g., edge-case dialects may fail).
+- Assumes sequential token handling — non-linear constructs (like lateral joins or certain recursive CTEs) may require custom handler extension.
+- Token cleaning aggressively removes `AS` and `Punctuation`, which could interfere with edge-case parsing logic.
+- No built-in support for dialect-specific parsing (e.g., BigQuery vs. PostgreSQL).
+- Currently fails to parse `SQLFeatures` correctly (e.g. CASE, WINDOW, and FUNCTION statements, represented as SQLColumn)
+- Currently fails to parse `SQLSegment` conditions in compound subqueries (e.g. UNION ALL, etc)
+
+## 🧰 Dependencies
+
+- Python 3.7+
+- [`sqlparse`](https://github.com/andialbrecht/sqlparse)
+
+```bash
+pip install sqlparse

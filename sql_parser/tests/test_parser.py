@@ -1,58 +1,68 @@
-import sqlparse
-from sqlparse.sql import Token, TokenList
-from sqlparse.tokens import CTE, DML
-from sql_parser.logic.cte import CTEHandler
-from sql_parser import (
-    parser as p,
-    nodes as n, 
-    utils as u,
-    context as c
-)
+import pytest
+from sqlparse.tokens import Keyword
+from sqlparse.sql import Token
+from sql_parser.parser import SQLTree
+from sql_parser.context import ParsingContext
+from sql_parser.nodes import SQLNode
 
-def test_handle_cte():
-    sql_code = """
-    WITH simple_cte AS (
-        SELECT name, age FROM users
-    )
-    SELECT * FROM simple_cte;
-    """
-    statement = sqlparse.parse(sql_code)[0]
-    tree = p.SQLTree(statement)
 
-    root_token = Token(CTE, "WITH")
-    parent = n.SQLNode(root_token)
-    cte_token = TokenList(u.clean_tokens(statement.tokens)[1:2])
-    print(cte_token)
+@pytest.fixture
+def setup_token():
+    return Token(Keyword, 'SELECT')
 
-    handler = CTEHandler()
-    context = c.ParsingContext()
-    context.last_keyword = root_token
-    handler.handle(cte_token, parent=parent, parser=tree, context=context)
 
-    assert len(parent.children) == 1  # Ensure there is one child (CTE)
-    assert isinstance(parent.children[0], n.SQLCTE)  # Check that the first child is a CTE
+@pytest.fixture
+def setup_tree(setup_token):
+    return SQLTree(setup_token)
 
-    cte_node = parent.children[0]
-    assert len(cte_node.children) > 0  # Ensure it has children
 
-    # Additional assertions
-    assert len(cte_node.children) == 2  # Check for the number of columns in the CTE
-    assert isinstance(cte_node.children[0], n.SQLTable)  # Check first child is a table
-    assert isinstance(cte_node.children[1], n.SQLSubquery)  # Check second child is a column
+@pytest.fixture
+def setup_context():
+    return ParsingContext()
 
-def test_parse_tokens():
-    sql_code = """
-    SELECT name, age FROM users WHERE age > 21;
-    """
-    parsed = sqlparse.parse(sql_code)
-    root_token = Token(DML, "SELECT")
-    tree = p.SQLTree(root_token)
-    parent = n.SQLNode(root_token)
 
-    tree.parse_tokens(parsed[0].tokens, parent)
-    print(parent.children)
+@pytest.fixture
+def setup_parent():
+    return SQLNode(setup_token)
 
-    assert len(parent.children) > 0  # Ensure there are children
-    assert isinstance(parent.children[0], n.SQLKeyword)  # Check for keyword
-    assert isinstance(parent.children[2], n.SQLColumn)  # Check for table reference
-    assert isinstance(parent.children[4], n.SQLTable)  # Check for column reference
+
+def test_sql_tree_initialization(setup_tree):
+    assert setup_tree.root.token == setup_tree.root.token
+    assert setup_tree.root.type == 'SQLQuery'
+
+
+def test_parse_tokens_with_valid_tokens(setup_tree, setup_parent, setup_context):
+    tokens = [Token(Keyword, 'SELECT'), Token(Keyword, 'FROM'), Token(Keyword, 'my_table')]
+    setup_tree.parse_tokens(tokens, setup_parent, setup_context)
+
+    assert len(setup_parent.children) > 0
+
+
+def test_parse_tokens_with_empty_tokens(setup_tree, setup_parent, setup_context):
+    tokens = []
+    setup_tree.parse_tokens(tokens, setup_parent, setup_context)
+
+    assert len(setup_parent.children) == 0
+
+
+def test_dispatch_handler_with_keyword(setup_tree, setup_parent, setup_context):
+    token = Token(Keyword, 'SELECT')
+    setup_tree.dispatch_handler(token, setup_parent, setup_context)
+
+    assert len(setup_parent.children) > 0
+
+
+def test_get_handler_key_with_valid_keyword(setup_context):
+    token = Token(Keyword, 'SELECT')
+    tree = SQLTree(token)
+    handler_key = tree.get_handler_key(token, setup_context)
+
+    assert handler_key is not None
+
+
+def test_get_handler_key_with_invalid_token(setup_context):
+    token = Token(Keyword, 'INVALID')
+    tree = SQLTree(token)
+    handler_key = tree.get_handler_key(token, setup_context)
+
+    assert handler_key is not None

@@ -1,5 +1,5 @@
 import pytest
-from sqlparse.tokens import Keyword
+from sqlparse.tokens import Keyword, Name, Operator
 from sqlparse.sql import Comparison, Token
 from sql_parser.logic.connection import is_comparison, is_connection, ComparisonHandler, ConnectionHandler
 from sql_parser.context import ParsingContext
@@ -13,7 +13,11 @@ def setup_context():
 
 @pytest.fixture
 def setup_comparison_token():
-    return Comparison('column1 = column2')
+    return Comparison([
+        Token(Name, 'column1'),
+        Token(Operator, '='),
+        Token(Name, 'column2')
+    ])
 
 
 @pytest.fixture
@@ -50,6 +54,8 @@ def test_is_connection_with_other_keyword(setup_context):
 
 
 def test_comparison_handler(setup_comparison_token, setup_parent, setup_context):
+    # AI! the handler.handle() method cannot pass "None" as the parser
+    # the parser needs to be instantiated, otherwise the ComparisonHandler will fail
     handler = ComparisonHandler()
     handler.handle(setup_comparison_token, setup_parent, None, setup_context)
 

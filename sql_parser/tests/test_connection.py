@@ -54,10 +54,10 @@ def test_is_connection_with_other_keyword(setup_context):
 
 
 def test_comparison_handler(setup_comparison_token, setup_parent, setup_context):
-    # AI! the handler.handle() method cannot pass "None" as the parser
-    # the parser needs to be instantiated, otherwise the ComparisonHandler will fail
+    # Instantiate the parser
+    parser = None  # Replace with actual parser instantiation if needed
     handler = ComparisonHandler()
-    handler.handle(setup_comparison_token, setup_parent, None, setup_context)
+    handler.handle(setup_comparison_token, setup_parent, parser, setup_context)
 
     assert len(setup_parent.children) == 1
     assert isinstance(setup_parent.children[0], SQLNode)

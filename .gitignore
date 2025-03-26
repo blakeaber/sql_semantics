@@ -1,7 +1,24 @@
-.ipynb_checkpoints/
-.vscode/
-*.ipynb
-*.DS_Store
+.gitignore
+```
+# Ignore Python cache files
 __pycache__/
-.aider*
+*.py[cod]
+
+# Ignore virtual environment directories
+venv/
 .env
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+
+# Ignore coverage reports
+.coverage
+htmlcov/
+*.cover
+
+# Ignore logs
+*.log

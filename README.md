@@ -91,25 +91,18 @@ for triple in context.triples:
 
 ### 🧩 Extending the Parser
 To add a custom handler:
-
-Add a new entry in HandlerType enum.
-
-Create a handler class that inherits from BaseHandler.
-
-Add it to HANDLER_MAPPING in registry.py.
-
-Add recognition logic in get_handler_key() in parser.py.
+- Add a new entry in HandlerType enum.
+- Create a handler class that inherits from BaseHandler.
+- Add it to HANDLER_MAPPING in registry.py.
+- Add recognition logic in get_handler_key() in parser.py.
 
 ### 🧪 Testing
 You can validate the tree structure, triples, and handlers by:
+- Asserting node types and parent/child relationships.
+- Logging parsing steps via log_parsing_step() in utils.py.
+- Comparing outputs across multiple SQL dialects.
 
-Asserting node types and parent/child relationships.
-
-Logging parsing steps via log_parsing_step() in utils.py.
-
-Comparing outputs across multiple SQL dialects.
-
-(Note: A test suite is not yet included in this release.)
+(Note: A test suite is only partially complete in this release.)
 
 ### 📄 License
 MIT License. Contributions welcome!

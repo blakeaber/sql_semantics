@@ -72,7 +72,7 @@ def save_results_to_file(content, batch_id=-1, output_directory=None):
     Path(output_directory).mkdir(parents=True, exist_ok=True)
 
     current_batch = batch_id + 1
-    output_file = f"./{output_directory}/query_batch_{current_batch:03d}.sql"
+    output_file = f"{output_directory}/query_batch_{current_batch:03d}.sql"
 
     with open(output_file, "w") as f:
         f.write(content)
@@ -108,7 +108,7 @@ def main():
     parser.add_argument("--n", type=int, default=50, help="Total number of queries to generate (multiple of 10)")
     parser.add_argument("--schema", type=str, default=f"{package_root}/data/healthcare/schema.sql", help="Path to schema file")
     parser.add_argument("--prompt", type=str, default=f"{package_root}/data/seed_prompt.txt", help="Path to seed prompt file")
-    parser.add_argument("--outdir", type=str, default=f"{package_root}/data/healthcare/queries/", help="Output directory for queries")
+    parser.add_argument("--outdir", type=str, default=f"{package_root}/data/healthcare/queries", help="Output directory for queries")
     parser.add_argument("--retries", type=int, default=3, help="Max retries per batch")
 
     args = parser.parse_args()

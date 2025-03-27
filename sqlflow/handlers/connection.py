@@ -45,9 +45,9 @@ class ConnectionHandler(BaseHandler):
         connection_node = comparison_type(token)
 
         if is_comparison(token, context):
-            parent.add_child(connection_node)
+            parent.add_child(connection_node, context)
             connection_context = context.copy(depth=context.depth + 1)
             parser.assign_handler(token, connection_node, connection_context, HandlerType.COMPARISON)
         else:
-            parent.add_child(connection_node)
+            parent.add_child(connection_node, context)
             parser.assign_handler(token, connection_node, context.copy(), HandlerType.UNKNOWN)

@@ -22,7 +22,7 @@ class SubqueryHandler(BaseHandler):
         here unless handling subqueries
         """
         subquery_node = n.SQLSubquery(token)
-        parent.add_child(subquery_node)
+        parent.add_child(subquery_node, context)
         u.log_parsing_step('Subquery added', subquery_node, level=1)
 
         if subquery_node in context.visited:

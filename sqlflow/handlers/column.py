@@ -24,13 +24,13 @@ class ColumnHandler(BaseHandler):
         elif isinstance(token, IdentifierList):
             for sub_token in u.clean_tokens(token.tokens):
                 col_node = n.SQLColumn(sub_token)
-                parent.add_child(col_node)
+                parent.add_child(col_node, context)
                 u.log_parsing_step('Column:IdentifierList added', col_node, level=1)
         elif isinstance(token, Identifier):
             col_node = n.SQLColumn(token)
-            parent.add_child(col_node)
+            parent.add_child(col_node, context)
             u.log_parsing_step('Column:Identifier added', col_node, level=1)
         else:
             col_node = n.SQLColumn(token)
-            parent.add_child(col_node)
+            parent.add_child(col_node, context)
             u.log_parsing_step('Column:Unknown added', col_node, level=1)

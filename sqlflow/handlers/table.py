@@ -31,5 +31,5 @@ class TableHandler(BaseHandler):
 
         else:
             table_node = n.SQLTable(token)
-            parent.add_child(table_node)
+            parent.add_child(table_node, context)
             u.log_parsing_step('Table added', table_node, level=1)

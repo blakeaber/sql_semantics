@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def log_parsing_step(log_step, node, level=0):
     verbose_options = [logging.WARN, logging.INFO, logging.DEBUG]
-    output = f"{log_step}: {node.type} -> {node.alias} {node.name} [UID: {node.uri}]"
+    output = f"{log_step}: {node.type} -> {node.name} [UID: {node.uri}]"
     if verbose_options[level] == logging.WARN:
         logger.warning(output)
     elif verbose_options[level] == logging.INFO:

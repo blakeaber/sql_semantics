@@ -6,30 +6,10 @@ A modular, extensible framework for parsing SQL queries into rich semantic trees
 
 This project parses SQL statements into a tree of semantically meaningful nodes, each with type-safe representation (`SQLTable`, `SQLColumn`, `SQLKeyword`, etc.). It supports flexible dispatching of handlers for each type of token, and allows building structured, query-aware data representations (e.g., graphs or triple stores).
 
-## 📦 Modules
-
-- **`parser.py`** – Parses cleaned SQL tokens into a tree.
-- **`nodes.py`** – Typed node classes for various SQL components.
-- **`context.py`** – Tracks parsing state and semantic triples.
-- **`registry.py`** – Maps handler types to handler classes.
-- **`utils.py`** – Helpers for token cleaning, hashing, and logging.
-
-## ✅ Features
-
-- Tree-based SQL parse structure.
-- Custom handlers for query components (CTEs, WHERE clauses, joins, features, etc.).
-- Semantic triple generation for graph-style analysis.
-- Lightweight context tracking.
-- Hashable node UIDs for traceability and reproducibility.
-
-## ⚠️ Caveats
-
-- Relies on `sqlparse`, which lacks full SQL grammar support (e.g., edge-case dialects may fail).
-- Assumes sequential token handling — non-linear constructs (like lateral joins or certain recursive CTEs) may require custom handler extension.
-- Token cleaning aggressively removes `AS` and `Punctuation`, which could interfere with edge-case parsing logic.
-- No built-in support for dialect-specific parsing (e.g., BigQuery vs. PostgreSQL).
-- Currently fails to parse `SQLFeatures` correctly (e.g. CASE, WINDOW, and FUNCTION statements, represented as SQLColumn)
-- Currently fails to parse `SQLSegment` conditions in compound subqueries (e.g. UNION ALL, etc)
+## 📦 Installation
+```bash
+pip install sqlflow
+```
 
 ## 🚀 Quick Start: Parse SQL into a Tree
 
@@ -89,6 +69,31 @@ for triple in context.triples:
 ('sqlcte://None/top_customers/None', 'hasSQLFeature', 'sqlfeature://orders/SUM/total_spent')
 ```
 
+### 📦 Modules
+
+- **`parser.py`** – Parses cleaned SQL tokens into a tree.
+- **`nodes.py`** – Typed node classes for various SQL components.
+- **`context.py`** – Tracks parsing state and semantic triples.
+- **`registry.py`** – Maps handler types to handler classes.
+- **`utils.py`** – Helpers for token cleaning, hashing, and logging.
+
+### ✅ Features
+
+- Tree-based SQL parse structure.
+- Custom handlers for query components (CTEs, WHERE clauses, joins, features, etc.).
+- Semantic triple generation for graph-style analysis.
+- Lightweight context tracking.
+- Hashable node UIDs for traceability and reproducibility.
+
+### ⚠️ Caveats
+
+- Relies on `sqlparse`, which lacks full SQL grammar support (e.g., edge-case dialects may fail).
+- Assumes sequential token handling — non-linear constructs (like lateral joins or certain recursive CTEs) may require custom handler extension.
+- Token cleaning aggressively removes `AS` and `Punctuation`, which could interfere with edge-case parsing logic.
+- No built-in support for dialect-specific parsing (e.g., BigQuery vs. PostgreSQL).
+- Currently fails to parse `SQLFeatures` correctly (e.g. CASE, WINDOW, and FUNCTION statements, represented as SQLColumn)
+- Currently fails to parse `SQLSegment` conditions in compound subqueries (e.g. UNION ALL, etc)
+
 ### 🧩 Extending the Parser
 To add a custom handler:
 - Add a new entry in HandlerType enum.
@@ -102,10 +107,52 @@ You can validate the tree structure, triples, and handlers by:
 - Logging parsing steps via log_parsing_step() in utils.py.
 - Comparing outputs across multiple SQL dialects.
 
+```bash
+pytest
+```
+
 (Note: A test suite is only partially complete in this release.)
 
-### 📄 License
+### 🧩 Optional Features
+`sqlflow` supports modular extras for development, semantic graph embedding, and synthetic query generation. You can install these as needed using extras in pip.
+
+#### Development
+Includes testing tools for local development.
+
+```bash
+pip install "sqlflow[dev]"
+```
+Installs: 
+    pytest – for running tests
+
+#### Synthetic Query Generation
+Includes tools for generating and managing synthetic SQL queries, often for fine-tuning or benchmarking.
+
+```bash
+pip install "sqlflow[synthetic]"
+```
+Installs: 
+    openai – for GPT-based SQL generation
+    python-dotenv – for managing API keys via .env
+
+#### Semantic Graph Embeddings
+Includes graph tools for working with semantic RDF-style outputs.
+
+```bash
+pip install "sqlflow[semantics]"
+```
+Installs:
+    pecanpy – for fast graph embedding with node2vec-style algorithms
+
+#### Combine Extras
+You can install multiple extras together:
+
+```bash
+pip install "sqlflow[dev,synthetic,semantics]"
+```
+
+## 📄 License
 MIT License. Contributions welcome!
 
-### 🤝 Contributions
+## 🤝 Contributions
 Feel free to open issues, fork the repo, or submit PRs to add dialect support, improve node disambiguation, or extend the semantic model.

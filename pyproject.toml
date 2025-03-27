@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["sqlflow*"]
+exclude = ["debug*", "tests*"]
+
+[project]
+name = "sqlflow"
+version = "0.1.0"
+description = "Parse SQL queries into semantic graph representations with RDF triples"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+dependencies = [
+    "sqlparse>=0.4.4"
+]
+
+[project.scripts]
+sqlgen = "sqlflow.cli.generate_queries:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+synthetic = ["openai>=1.0", "python-dotenv>=0.21"]
+semantics = ["pecanpy>=0.0.1"]

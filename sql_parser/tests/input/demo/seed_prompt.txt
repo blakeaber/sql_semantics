@@ -1,0 +1,9 @@
+Each query should adhere to the following:
+- Multiple JOINs (3+)
+- JOIN on Subquery (not CTE)
+- CTEs (1–2)
+- Aggregations (2+ by time, category, etc)
+- Computed column using built-in functions
+- Complex statements: CASE, WINDOW, HAVING, IN, UNION ALL, etc
+- Significant Nested Levels (2+)
+- Realistic naming

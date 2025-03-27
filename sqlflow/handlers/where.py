@@ -22,7 +22,7 @@ class WhereHandler(BaseHandler):
         for sub_token in u.clean_tokens(token.tokens):
             if is_comparison(sub_token, context):
                 comparison_node = n.SQLSegment(sub_token)
-                parent.add_child(comparison_node)
+                parent.add_child(comparison_node, context)
                 comparison_context = context.copy(depth=context.depth + 1)
                 parser.assign_handler(sub_token, comparison_node, comparison_context, HandlerType.COMPARISON)
                 u.log_parsing_step('Where:Segment added', comparison_node, level=1)

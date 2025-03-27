@@ -1,15 +1,15 @@
 
+import uuid
 from sqlflow import utils as u
 
 
 class SQLNode:
     """Base class representing a node in the SQL parse tree."""
     
-    CHAR_DISPLAY_LIMIT = 40
-    __slots__ = [
-        "token", "type", "level", "children", 
-        "parent", "name", "alias"
-        ]
+    __slots__ = ["id", "token", "type", "level", "children", "parent", "name", "alias"]
+
+    TOKENS2RESOLVE = ['sqlliteral', 'sqloperator', 'sqlkeyword', 'sqlcolumn', 'sqltable']
+    CHAR_DISPLAY_LIMIT = 50
 
     def __init__(self, token, level=None):
 
@@ -17,13 +17,15 @@ class SQLNode:
         for attr in self.__slots__:
             setattr(self, attr, None)
 
+        self.id = uuid.uuid4()
+
         self.token = token
         self.type = self.__class__.__name__
         self.level = level or 0
 
-        self.parent = u.get_node_parent(self, token)
+        self.parent = u.get_node_parent(self, token) or ' '
         self.name = u.get_node_name(self, token) or self.display_value
-        self.alias = u.get_node_alias(self, token)
+        self.alias = u.get_node_alias(self, token) or ' '
 
         self.children = []
 
@@ -34,9 +36,9 @@ class SQLNode:
 
         if context:
             context.add_triple(
-                subject=self.uri(),
-                predicate=f"has{child_node.type}",
-                object_=child_node.uri()
+                subject=self.uri,
+                predicate=f"has_{child_node.type}",
+                object_=child_node.uri
             )
 
     def traverse(self, depth=0):
@@ -46,14 +48,21 @@ class SQLNode:
 
     @property
     def uri(self):
-        return f"{self.type.lower()}://{self.parent}/{self.name}/{self.alias}".replace(" ", "_")
+        node_type = self.type.lower().strip()
+
+        if node_type in self.TOKENS2RESOLVE:
+            slug = f"{self.parent.lower().strip()}/{self.alias.lower().strip()}/{self.name.lower().strip()}"
+            return f"{node_type}://{slug}".replace(" ", "_")
+        else:
+            slug = self.name.lower().strip()
+            return f"{node_type}://{self.id}/{slug}".replace(" ", "_")
 
     @property
     def display_value(self):
         return self.token.value.replace('\n', ' ')[:self.CHAR_DISPLAY_LIMIT]
 
     def __hash__(self):
-        return u.get_short_hash(self.uri)
+        return self.id.int
 
     def __repr__(self):
         """Returns a string representation of the node."""
@@ -83,13 +92,13 @@ class SQLColumn(SQLNode):
     pass
 
 
-class SQLFeature(SQLNode):
-    """Represents a calculated feature, such as a function or case statement."""
+class SQLTable(SQLNode):
+    """Represents a table in a SQL statement."""
     pass
 
 
-class SQLTable(SQLNode):
-    """Represents a table in a SQL statement."""
+class SQLFeature(SQLNode):
+    """Represents a calculated feature, such as a function or case statement."""
     pass
 
 

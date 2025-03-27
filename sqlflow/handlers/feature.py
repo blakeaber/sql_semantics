@@ -39,7 +39,7 @@ class FeatureHandler(BaseHandler):
         here unless handling subqueries
         """
         feature_node = n.SQLFeature(token)
-        parent.add_child(feature_node)
+        parent.add_child(feature_node, context)
         u.log_parsing_step('Feature Node added', feature_node, level=2)
 
         feature_context = context.copy(depth=context.depth + 1)

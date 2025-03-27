@@ -55,7 +55,7 @@ class KeywordHandler(BaseHandler):
         here unless handling subqueries
         """
         keyword_node = n.SQLKeyword(token)
-        parent.add_child(keyword_node)
+        parent.add_child(keyword_node, context)
         u.log_parsing_step('Keyword added', keyword_node, level=1)
         context.last_keyword = token
 
@@ -67,7 +67,7 @@ class OperatorHandler(BaseHandler):
         here unless handling subqueries
         """
         operator_node = n.SQLOperator(token)
-        parent.add_child(operator_node)
+        parent.add_child(operator_node, context)
         u.log_parsing_step('Operator added!', operator_node, level=2)
 
 
@@ -78,7 +78,7 @@ class LiteralHandler(BaseHandler):
         here unless handling subqueries
         """
         literal_node = n.SQLLiteral(token)
-        parent.add_child(literal_node)
+        parent.add_child(literal_node, context)
         u.log_parsing_step('Literal added!', literal_node, level=2)
 
 
@@ -89,5 +89,5 @@ class UnknownHandler(BaseHandler):
         here unless handling subqueries
         """
         unknown_node = n.SQLNode(token)
-        parent.add_child(unknown_node)
+        parent.add_child(unknown_node, context)
         u.log_parsing_step('Unknown Node added!', unknown_node, level=2)

@@ -1,4 +1,4 @@
-# SQL Parser Framework
+# SQLFlow
 
 A modular, extensible framework for parsing SQL queries into rich semantic trees. Designed for advanced SQL analysis, transformation, and lineage extraction.
 
@@ -15,7 +15,7 @@ pip install sqlflow
 
 ```python
 from sqlparse import parse
-from sql_parser.parser import SQLTree
+from sqlflow.parser import SQLTree
 
 sql = """
 WITH top_customers AS (
@@ -42,18 +42,35 @@ tree.root.traverse()
 
 #### Example Output
 ```python
-SQLQuery(WITH top_customers AS ( SELECT customer_id, SUM(tot...)
-  SQLCTE(top_customers AS ( SELECT customer_id, SUM(total...
-    SQLFeature(SUM(total)...)
-  SQLKeyword(SELECT...)
-  SQLTable(customers...)
-  SQLRelationship(JOIN...)
-
+SQLQuery( )
+  SQLKeyword(WITH)
+  SQLSubquery(top_customers AS (     SELECT customer_id, SUM(tot...)
+    SQLTable(top_customers)
+    SQLSubquery((     SELECT customer_id, SUM(total) as total_spen...)
+      SQLKeyword(SELECT)
+      SQLColumn(customer_id)
+      SQLColumn(SUM(total) as total_spent)
+      SQLKeyword(FROM)
+      SQLTable(orders)
+      ...
+      SQLSegment(SUM(total) > 1000)
+        SQLColumn(SUM(total))
+        SQLColumn(>)
+        SQLLiteral(1000)
+  SQLKeyword(SELECT)
+  ...
+  SQLKeyword(JOIN)
+  SQLTable(top_customers t)
+  SQLKeyword(ON)
+  SQLRelationship(c.id = t.customer_id)
+    SQLColumn(c.id)
+    SQLColumn(=)
+    SQLColumn(t.customer_id)
 ```
 
 ## 🔗 Extract Semantic Triples
 ```python
-from sql_parser.context import ParsingContext
+from sqlflow.context import ParsingContext
 
 context = ParsingContext()
 tree.parse_tokens(tokens, tree.root, context)

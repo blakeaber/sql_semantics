@@ -20,7 +20,7 @@ class CTEHandler(BaseHandler):
     def handle(self, token, parent, parser, context):
         for cte in u.clean_tokens(token.tokens):
             cte_node = n.SQLCTE(cte)
-            parent.add_child(cte_node)
+            parent.add_child(cte_node, context)
             u.log_parsing_step('CTE added', cte_node, level=1)
 
             if cte_node in context.visited:

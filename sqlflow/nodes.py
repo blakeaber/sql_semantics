@@ -1,9 +1,10 @@
 
 import uuid
+from abc import ABC, abstractmethod
 from sqlflow import utils as u
 
 
-class SQLNode:
+class SQLNode(ABC):
     """Base class representing a node in the SQL parse tree."""
     
     __slots__ = ["id", "token", "type", "level", "children", "parent", "name", "alias"]
@@ -36,9 +37,15 @@ class SQLNode:
 
         if context:
             context.add_triple(
-                subject=self.uri,
+                subject=self.uri(context),
                 predicate=f"has_{child_node.type}",
-                object_=child_node.uri
+                object_=child_node.uri(context)
+            )
+        else:
+            context.add_triple(
+                subject=self.uri(),
+                predicate=f"has_{child_node.type}",
+                object_=child_node.uri()
             )
 
     def traverse(self, depth=0):
@@ -46,16 +53,9 @@ class SQLNode:
         for child in self.children:
             child.traverse(depth + 1)
 
-    @property
-    def uri(self):
-        node_type = self.type.lower().strip()
-
-        if node_type in self.TOKENS2RESOLVE:
-            slug = f"{self.parent.lower().strip()}/{self.alias.lower().strip()}/{self.name.lower().strip()}"
-            return f"{node_type}://{slug}".replace(" ", "_")
-        else:
-            slug = self.name.lower().strip()
-            return f"{node_type}://{self.id}/{slug}".replace(" ", "_")
+    @abstractmethod
+    def uri(self, context=None):
+        pass
 
     @property
     def display_value(self):
@@ -72,56 +72,94 @@ class SQLNode:
 
 
 # --- Specialized SQL Node Classes ---
+class SQLUnknown(SQLNode):
+    """Represents a Placeholder to capture Unknown nodes."""
+    def uri(self, context=None):
+        name = self.name or self.token.get_real_name() or self.token.value
+        return f"{self.type}://{name}".replace(" ", "_").lower()
+
+
 class SQLKeyword(SQLNode):
     """Represents a SQL keyword (e.g., SELECT, FROM, WHERE)."""
-    pass
+    def uri(self, context=None):
+        name = self.name or self.token.get_real_name() or self.token.value
+        return f"{self.type}://{name}".replace(" ", "_").lower()
 
 
 class SQLLiteral(SQLNode):
     """Represents a literal (e.g. 'Green' or 123)"""
-    pass
+    def uri(self, context=None):
+        name = self.name or self.token.get_real_name() or self.token.value
+        return f"{self.type}://{name}".replace(" ", "_").lower()
 
 
 class SQLOperator(SQLNode):
     """Represents a logical operator (e.g. AND, OR, <, =)"""
-    pass
+    def uri(self, context=None):
+        name = self.name or self.token.get_real_name() or self.token.value
+        return f"{self.type}://{name}".replace(" ", "_").lower()
 
 
 class SQLColumn(SQLNode):
     """Represents a column in a SQL statement."""
-    pass
+    def uri(self, context=None):
+        table_alias = self.parent
+        column_name = self.name
+
+        if context and table_alias:
+            resolved_table_uri = context.resolve_alias(table_alias)
+            if resolved_table_uri:
+                resolved_table_name = resolved_table_uri.split("://")[-1]
+                return f"{self.type}://{resolved_table_name}.{column_name}".replace(" ", "_").lower()
+
+        # fallback using alias directly
+        return f"{self.type}://{table_alias}.{column_name}".replace(" ", "_").lower()
 
 
 class SQLTable(SQLNode):
     """Represents a table in a SQL statement."""
-    pass
+    def uri(self, context=None):
+        name = self.name or self.token.get_real_name() or self.token.value
+        return f"{self.type}://{name}".replace(" ", "_").lower()
 
 
 class SQLFeature(SQLNode):
     """Represents a calculated feature, such as a function or case statement."""
-    pass
+    def uri(self, context=None):
+        slug = self.name.lower().strip()
+        return f"{self.type}://{self.id}/{slug}".replace(" ", "_")
 
 
 class SQLRelationship(SQLNode):
     """Represents a relational clause between tables (e.g., JOIN conditions)."""
-    pass
+    def uri(self, context=None):
+        slug = self.name.lower().strip()
+        return f"{self.type}://{self.id}/{slug}".replace(" ", "_")
 
 
 class SQLSegment(SQLNode):
     """Represents a filtered segment of the population (e.g. WHERE or HAVING conditions)."""
-    pass
+    def uri(self, context=None):
+        slug = self.name.lower().strip()
+        return f"{self.type}://{self.id}/{slug}".replace(" ", "_")
 
 
 class SQLSubquery(SQLNode):
     """Represents a subquery enclosed in parentheses."""
-    pass
+    def uri(self, context=None):
+        slug = self.name.lower().strip()
+        return f"{self.type}://{self.id}/{slug}".replace(" ", "_")
 
 
 class SQLCTE(SQLNode):
     """Represents a CTE in a SQL statement."""
-    pass
+    def uri(self, context=None):
+        slug = self.name.lower().strip()
+        return f"{self.type}://{self.id}/{slug}".replace(" ", "_")
 
 
 class SQLQuery(SQLNode):
     """Represents a complete SQL statement."""
-    pass
+    def uri(self, context=None):
+        slug = self.name.lower().strip()
+        return f"{self.type}://{self.id}/{slug}".replace(" ", "_")

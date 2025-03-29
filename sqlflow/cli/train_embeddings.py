@@ -36,25 +36,25 @@ def n2v_instantiate_model(G: nx.DiGraph, dimensions=128, walk_length=40, num_wal
     )
 
 
-def n2v_train_model(model, window=8, min_count=1, batch_words=4) -> Node2Vec:
+def n2v_train_model(model, window=5, min_count=5, sg=1, hs=1) -> Node2Vec:
     """Trains Node2Vec model."""
-    return model.fit(window=window, min_count=min_count, batch_words=batch_words)
-
+    return model.fit(window=window, min_count=min_count, sg=sg, hs=hs)
 
 
 def main():
     package_root = Path(__file__).parent.parent
 
     parser = argparse.ArgumentParser(description="Train Node2Vec on SQL triples.")
-    parser.add_argument("--triples", type=str, default="../sqlflow/data/healthcare/triples.txt", help="Path to triples file")
+    parser.add_argument("--triples", type=str, default=f"{package_root}/data/healthcare/triples.txt", help="Path to triples file")
     parser.add_argument("--modelpath", type=str, default=f"{package_root}/data/healthcare/embeddings.kv", help="Embeddings model path")
-    parser.add_argument("--dims", type=int, default=128, help="Dimensions")
-    parser.add_argument("--walksize", type=int, default=40, help="Walk length")
-    parser.add_argument("--numwalks", type=int, default=20, help="Number of walks")
-    parser.add_argument("--workers", type=int, default=3, help="Number of CPUs")
-    parser.add_argument("--window", type=int, default=8, help="Window size")
-    parser.add_argument("--mincount", type=int, default=1, help="Minimum count observed")
-    parser.add_argument("--batchwords", type=int, default=4, help="Words per batch")
+    parser.add_argument("--dims", type=int, default=128, help="N2V Walks: Dimensions")
+    parser.add_argument("--walksize", type=int, default=40, help="N2V Walks: # Nodes per walk")
+    parser.add_argument("--numwalks", type=int, default=20, help="N2V Walks: # Walks per node")
+    parser.add_argument("--workers", type=int, default=3, help="N2V Walks: Number of CPUs")
+    parser.add_argument("--window", type=int, default=8, help="N2V Fit: Window size")
+    parser.add_argument("--mincount", type=int, default=1, help="N2V Fit: Minimum count observed")
+    parser.add_argument("--sg", type=int, default=4, help="N2V Fit: Boolean for Skipgram training")
+    parser.add_argument("--hs", type=int, default=4, help="N2V Fit: Boolean for Hierarchical softmax training")
 
     args = parser.parse_args()
 

@@ -134,7 +134,9 @@ pytest
 `sqlflow` supports modular extras for development, semantic graph embedding, and synthetic query generation. You can install these as needed using extras in pip.
 
 #### Synthetic Query Generation
-The `sqlgen` bash command is an entrypoint to `sqlflow.cli.generate_queries:main`, which generates queries based on an input prompt. Provide a schema.sql representing tables in a particular domain (e.g. healthcare) and generate SQL queries for testing.
+The `sqlgen` bash command is an entrypoint to `sqlflow.cli.generate_queries:main`, which generates queries based on an input prompt. 
+
+Provide a schema.sql representing tables in a particular domain (e.g. healthcare) and generate SQL queries for testing.
 
 ```bash
 sqlgen --n 500  

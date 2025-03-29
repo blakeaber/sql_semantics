@@ -142,6 +142,15 @@ Provide a schema.sql representing tables in a particular domain (e.g. healthcare
 sqlgen --n 500  
 ```
 
+#### Embedding Generation
+The `sqlembed` bash command is an entrypoint to `sqlflow.cli.train_embeddings:main`, which generates embeddings based on an input prompt. 
+
+Provide a triples.txt representing semantic triples generated using the `sqlflow` package.
+
+```bash
+sqlembed --walksize 40 --numwalks 20 --window 8
+```
+
 #### Development
 Includes testing tools for local development.
 

@@ -66,7 +66,7 @@ def main():
     model = n2v_instantiate_model(G, dimensions=args.dims, walk_length=args.walksize, num_walks=args.numwalks, workers=args.workers)
 
     logger.info("Training Node2Vec model...")
-    model = n2v_train_model(model, window=args.window, min_count=args.mincount, batch_words=args.batchwords)
+    model = n2v_train_model(model, window=args.window, min_count=args.mincount, sg=args.sg, hs=args.hs)
 
     logger.info("Saving Node2Vec model to file...")
     model.wv.save(args.modelpath)

@@ -21,15 +21,15 @@ def is_table(token, context):
 
 class TableHandler(BaseHandler):
     def handle(self, token, parent, parser, context):
-        """
-        NOTE: `parser` and `context` attributes intentionally unused 
-        here unless handling subqueries
-        """
+
         if token.is_group and any(is_subquery(t, context) for t in token.tokens):
-            subquery_context = context.copy(depth=context.depth + 1)
+            subquery_context = context.copy(depth=context.depth + 1, triples=context.triples)
             parser.assign_handler(token, parent, subquery_context, HandlerType.SUBQUERY)
 
         else:
             table_node = n.SQLTable(token)
             parent.add_child(table_node, context)
             u.log_parsing_step('Table added', table_node, level=1)
+
+            if table_node.alias:
+                context.define_alias(table_node.alias, table_node)

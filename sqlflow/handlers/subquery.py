@@ -32,6 +32,6 @@ class SubqueryHandler(BaseHandler):
         context.visited.add(subquery_node)
         
         u.log_parsing_step('Entering Subquery...', subquery_node, level=1)
-        subquery_context = context.copy(depth=context.depth + 1)
+        subquery_context = context.copy(depth=context.depth + 1, triples=context.triples)
         parser.parse_tokens(token, subquery_node, subquery_context)
         u.log_parsing_step('...Exiting Subquery', subquery_node, level=1)

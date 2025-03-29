@@ -19,8 +19,9 @@ dependencies = [
 
 [project.scripts]
 sqlgen = "sqlflow.cli.generate_queries:main"
+sqlembed = "sqlflow.cli.train_embeddings:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0"]
 synthetic = ["openai>=1.0", "python-dotenv>=0.21"]
-semantics = ["pecanpy>=0.0.1"]
+semantics = ["node2vec>=0.5.0", "networkx>=3.4.0"]

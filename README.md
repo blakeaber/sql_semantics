@@ -30,11 +30,11 @@ JOIN top_customers t ON c.id = t.customer_id
 """
 
 # Parse SQL using sqlparse
-tokens = parse(sql)[0].tokens
+statement = parse(sql)[0]
 
 # Build tree
-tree = SQLTree(tokens[0])
-tree.parse_tokens(tokens, tree.root)
+tree = SQLTree(statement)
+tree.parse_tokens(statement, tree.root)
 
 # Traverse and print tree
 tree.root.traverse()
@@ -132,6 +132,13 @@ pytest
 
 ### 🧩 Optional Features
 `sqlflow` supports modular extras for development, semantic graph embedding, and synthetic query generation. You can install these as needed using extras in pip.
+
+#### Synthetic Query Generation
+The `sqlgen` bash command is an entrypoint to `sqlflow.cli.generate_queries:main`, which generates queries based on an input prompt. Provide a schema.sql representing tables in a particular domain (e.g. healthcare) and generate SQL queries for testing.
+
+```bash
+sqlgen --n 500  
+```
 
 #### Development
 Includes testing tools for local development.

@@ -2,8 +2,7 @@
 import sqlparse
 from sqlflow import (
     parser as s, 
-    utils as u,
-    nodes as n
+    utils as u
 )
 
 def main():

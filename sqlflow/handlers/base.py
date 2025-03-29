@@ -88,6 +88,6 @@ class UnknownHandler(BaseHandler):
         NOTE: `parser` and `context` attributes intentionally unused 
         here unless handling subqueries
         """
-        unknown_node = n.SQLNode(token)
+        unknown_node = n.SQLUnknown(token)
         parent.add_child(unknown_node, context)
         u.log_parsing_step('Unknown Node added!', unknown_node, level=2)

@@ -191,3 +191,7 @@ MIT License. Contributions welcome!
 
 ## 🤝 Contributions
 Feel free to open issues, fork the repo, or submit PRs to add dialect support, improve node disambiguation, or extend the semantic model.
+
+## 📝 Writing
+
+Deep-dives on the ideas behind this project: **[predicate.ventures/writing](https://www.predicate.ventures/writing)**.
